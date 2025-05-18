@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<h1>My products</h1>
+
+<h2>Add product</h2>
+
+<input type="text" id="product-name" placeholder="Product name"><br>
+<input type="text" id="product-sku" placeholder="SKU"><br>
+<input type="number" id="product-sell-price" placeholder="Sell Price"><br>
+
+<button onclick="addProduct()">Add product</button>
+
+<ul id="products-list"></ul>
+{% csrf_token %}
+<script>
+    const csrftoken = '{{ csrf_token }}';
+    const API_URL = 'http://127.0.0.1:8000/api/products/';
+
+    async function addProduct() {
+        const name = document.getElementById('product-name').value;
+        const sku = document.getElementById('product-sku').value;
+        const sell_price = document.getElementById('product-sell-price').value;
+
+        const productData = {
+            name,
+            sku,
+            sell_price,
+            buy_price: 0,
+            quantity: 0
+        };
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(productData)
+        });
+
+        if (response.ok) {
+            alert('Product added!');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    }
+
+    async function loadProducts() {
+        const response = await fetch(API_URL);
+        const products = await response.json();
+        const list = document.getElementById('products-list');
+        list.innerHTML = '';
+
+        products.forEach(product => {
+            const li = document.createElement('li');
+            li.textContent = `${product.name} (SKU: ${product.sku}) - $${product.sell_price}`;
+            list.appendChild(li);
+        });
+    }
+    
+    loadProducts();
+</script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor, OENumber
+from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor
 from inventoryTracker.inventory.serializers import ProductSerializer, CategorySerializer, ManufacturerSerializer, \
-    WareHouseSerializer, ShelfSerializer, VendorSerializer, OENumberSerializer
+    WareHouseSerializer, ShelfSerializer, VendorSerializer
 
 
 def index(request):
@@ -33,10 +33,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
-
-class OENumberViewSet(viewsets.ModelViewSet):
-    queryset = OENumber.objects.all()
-    serializer_class = OENumberSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):

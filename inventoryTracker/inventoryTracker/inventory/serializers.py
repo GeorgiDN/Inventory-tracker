@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from inventoryTracker.inventory.models import OENumber, Product, Category, Manufacturer, Warehouse, Shelf, Vendor
+from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor
 
 
 class WareHouseSerializer(serializers.ModelSerializer):
@@ -32,17 +32,12 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
-class OENumberSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OENumber
-        fields = ['id', 'number']
-
-
 class ProductSerializer(serializers.ModelSerializer):
-    oe_numbers = serializers.PrimaryKeyRelatedField(
+    vendor = serializers.PrimaryKeyRelatedField(
         many=True,
-        queryset=OENumber.objects.all()
+        queryset=Vendor.objects.all()
     )
+
 
     class Meta:
         model = Product

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Product, Category, Vendor, Manufacturer, Warehouse, Shelf, OENumber
+from .models import Product, Category, Vendor, Manufacturer, Warehouse, Shelf
 
 
 @admin.register(Product)
@@ -31,9 +31,4 @@ class WarehouseAdmin(admin.ModelAdmin):
 
 @admin.register(Shelf)
 class ShelfAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(OENumber)
-class OENumberAdmin(admin.ModelAdmin):
     pass

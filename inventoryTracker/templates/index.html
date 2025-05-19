@@ -12,6 +12,10 @@
 <input type="text" id="product-name" placeholder="Product name"><br>
 <input type="text" id="product-sku" placeholder="SKU"><br>
 <input type="text" id="product-model" placeholder="Model"><br>
+<input type="text" id="product-model-2" placeholder="Model 2"><br>
+<input type="text" id="product-model-3" placeholder="Model 3"><br>
+<input type="text" id="product-model-4" placeholder="Model 4"><br>
+<input type="text" id="product-model-5" placeholder="Model 5"><br>
 <input type="number" id="product-barcode" placeholder="Barcode"><br>
 <input type="text" id="product-quantity" placeholder="Quantity"><br>
 <input type="number" id="product-sell-price" placeholder="Sell Price"><br>
@@ -30,7 +34,7 @@
     <option value="">-- Select Shelf --</option>
 </select>
 
-<select id="product-vendor">
+<select id="product-vendor" multiple>
     <option value="">-- Select Vendor --</option>
 </select>
 
@@ -38,13 +42,8 @@
     <option value="">-- Select Manufacturer --</option>
 </select>
 
-
 <select id="product-category">
     <option value="">-- Select Category --</option>
-</select>
-
-<select id="product-oe-number" multiple>
-    <option value="">-- Select Oe Number --</option>
 </select>
 
 <button onclick="addProduct()">Add product</button>
@@ -73,13 +72,16 @@
     loadSelectOptions('http://127.0.0.1:8000/api/vendors/', 'product-vendor');
     loadSelectOptions('http://127.0.0.1:8000/api/manufacturers/', 'product-manufacturer');
     loadSelectOptions('http://127.0.0.1:8000/api/categories/', 'product-category');
-    loadSelectOptions('http://127.0.0.1:8000/api/oenumbers/', 'product-oe-number');
 
 
     async function addProduct() {
         const name = document.getElementById('product-name').value;
         const sku = document.getElementById('product-sku').value;
         const model = document.getElementById('product-model').value;
+        const model_2 = document.getElementById('product-model-2').value;
+        const model_3 = document.getElementById('product-model-3').value;
+        const model_4 = document.getElementById('product-model-4').value;
+        const model_5 = document.getElementById('product-model-5').value;
         const barcodeValue = document.getElementById('product-barcode').value.trim();
         const barcode = barcodeValue === '' ? null : barcodeValue
         const quantityValue = document.getElementById('product-quantity').value;
@@ -89,17 +91,18 @@
 
         const warehouse = document.getElementById('warehouse').value || null;
         const shelf = document.getElementById('shelf').value || null;
-        const vendor = document.getElementById('product-vendor').value || null;
+        const vendor = getSelectedValues('product-vendor');
         const manufacturer = document.getElementById('product-manufacturer').value || null;
         const category = document.getElementById('product-category').value || null;
-        const oe_numbers = getSelectedValues('product-oe-number');
-        {#const oe_number = document.getElementById('product-oe-number').value || null;#}
-
 
         const productData = {
             name,
             sku,
             model,
+            model_2,
+            model_3,
+            model_4,
+            model_5,
             barcode,
             quantity,
             sell_price,
@@ -109,7 +112,6 @@
             vendor,
             manufacturer,
             category,
-            oe_numbers
         };
 
         const response = await fetch(API_URL, {
@@ -149,7 +151,7 @@
         const selected = [];
         const options = document.getElementById(selectId).selectedOptions;
         for (let option of options) {
-            selected.push(parseInt(option.value));
+            selected.push(option.value);
         }
         return selected;
     }

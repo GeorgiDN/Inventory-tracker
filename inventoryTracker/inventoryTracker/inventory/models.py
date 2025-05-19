@@ -40,13 +40,6 @@ class Category(models.Model):
         return self.name
 
 
-class OENumber(models.Model):
-    number = models.CharField(max_length=100, unique=True)
-
-    def __str__(self):
-        return self.number
-
-
 class Product(models.Model):
     name = models.CharField(max_length=255)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
@@ -54,7 +47,10 @@ class Product(models.Model):
     barcode = models.CharField(max_length=100, blank=True, null=True, unique=True)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.SET_NULL, null=True, blank=True)
     model = models.CharField(max_length=255, null=True, blank=True)
-    oe_numbers = models.ManyToManyField(OENumber, blank=True, related_name="products")
+    model_2 = models.CharField(max_length=255, null=True, blank=True)
+    model_3 = models.CharField(max_length=255, null=True, blank=True)
+    model_4 = models.CharField(max_length=255, null=True, blank=True)
+    model_5 = models.CharField(max_length=255, null=True, blank=True)
     quantity = models.IntegerField(blank=True, null=True, default=0)
 
     warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True)
@@ -62,7 +58,7 @@ class Product(models.Model):
     box = models.CharField(max_length=100, blank=True, null=True)
     bag = models.CharField(max_length=100, blank=True, null=True)
 
-    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
+    vendor = models.ManyToManyField(Vendor, blank=True, related_name='product_vendors')
     buy_price = models.DecimalField(max_digits=12, decimal_places=2,
                                     verbose_name="Purchase Price", blank=True, null=True, default=0)
     sell_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, default=0)

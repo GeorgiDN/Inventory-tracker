@@ -55,7 +55,7 @@ class Product(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.SET_NULL, null=True, blank=True)
     model = models.CharField(max_length=255, null=True, blank=True)
     oe_numbers = models.ManyToManyField(OENumber, blank=True, related_name="products")
-    quantity = models.IntegerField(blank=True, null=True)
+    quantity = models.IntegerField(blank=True, null=True, default=0)
 
     warehouse = models.ForeignKey(Warehouse, on_delete=models.SET_NULL, null=True, blank=True)
     shelf = models.ForeignKey(Shelf, on_delete=models.SET_NULL, null=True, blank=True)
@@ -64,8 +64,8 @@ class Product(models.Model):
 
     vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
     buy_price = models.DecimalField(max_digits=12, decimal_places=2,
-                                    verbose_name="Purchase Price", blank=True, null=True)
-    sell_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
+                                    verbose_name="Purchase Price", blank=True, null=True, default=0)
+    sell_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True, default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

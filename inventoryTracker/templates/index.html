@@ -11,7 +11,41 @@
 
 <input type="text" id="product-name" placeholder="Product name"><br>
 <input type="text" id="product-sku" placeholder="SKU"><br>
+<input type="text" id="product-model" placeholder="Model"><br>
+<input type="number" id="product-barcode" placeholder="Barcode"><br>
+<input type="text" id="product-quantity" placeholder="Quantity"><br>
 <input type="number" id="product-sell-price" placeholder="Sell Price"><br>
+<input type="number" id="product-buy-price" placeholder="Buy Price"><br>
+
+<input type="text" id="box" placeholder="Box"><br>
+<input type="text" id="bag" placeholder="Bag"><br>
+<textarea name="additional_info" id="additional_info" cols="30" rows="10" placeholder="Additional info"></textarea>
+
+
+<select id="warehouse">
+    <option value="">-- Select Warehouse --</option>
+</select>
+
+<select id="shelf">
+    <option value="">-- Select Shelf --</option>
+</select>
+
+<select id="product-vendor">
+    <option value="">-- Select Vendor --</option>
+</select>
+
+<select id="product-manufacturer">
+    <option value="">-- Select Manufacturer --</option>
+</select>
+
+
+<select id="product-category">
+    <option value="">-- Select Category --</option>
+</select>
+
+<select id="product-oe-number" multiple>
+    <option value="">-- Select Oe Number --</option>
+</select>
 
 <button onclick="addProduct()">Add product</button>
 
@@ -21,17 +55,61 @@
     const csrftoken = '{{ csrf_token }}';
     const API_URL = 'http://127.0.0.1:8000/api/products/';
 
+    async function loadSelectOptions(apiUrl, selectId) {
+        const response = await fetch(apiUrl);
+        const items = await response.json();
+        const select = document.getElementById(selectId);
+
+        items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.name;
+            select.appendChild(option);
+        });
+    }
+
+    loadSelectOptions('http://127.0.0.1:8000/api/warehouses/', 'warehouse');
+    loadSelectOptions('http://127.0.0.1:8000/api/shelfs/', 'shelf');
+    loadSelectOptions('http://127.0.0.1:8000/api/vendors/', 'product-vendor');
+    loadSelectOptions('http://127.0.0.1:8000/api/manufacturers/', 'product-manufacturer');
+    loadSelectOptions('http://127.0.0.1:8000/api/categories/', 'product-category');
+    loadSelectOptions('http://127.0.0.1:8000/api/oenumbers/', 'product-oe-number');
+
+
     async function addProduct() {
         const name = document.getElementById('product-name').value;
         const sku = document.getElementById('product-sku').value;
+        const model = document.getElementById('product-model').value;
+        const barcodeValue = document.getElementById('product-barcode').value.trim();
+        const barcode = barcodeValue === '' ? null : barcodeValue
+        const quantityValue = document.getElementById('product-quantity').value;
+        const quantity = quantityValue === '' ? null : quantityValue
         const sell_price = document.getElementById('product-sell-price').value;
+        const buy_price = document.getElementById('product-buy-price').value;
+
+        const warehouse = document.getElementById('warehouse').value || null;
+        const shelf = document.getElementById('shelf').value || null;
+        const vendor = document.getElementById('product-vendor').value || null;
+        const manufacturer = document.getElementById('product-manufacturer').value || null;
+        const category = document.getElementById('product-category').value || null;
+        const oe_numbers = getSelectedValues('product-oe-number');
+        {#const oe_number = document.getElementById('product-oe-number').value || null;#}
+
 
         const productData = {
             name,
             sku,
+            model,
+            barcode,
+            quantity,
             sell_price,
-            buy_price: 0,
-            quantity: 0
+            buy_price,
+            warehouse,
+            shelf,
+            vendor,
+            manufacturer,
+            category,
+            oe_numbers
         };
 
         const response = await fetch(API_URL, {
@@ -64,8 +142,18 @@
             list.appendChild(li);
         });
     }
-    
+
     loadProducts();
+
+    function getSelectedValues(selectId) {
+        const selected = [];
+        const options = document.getElementById(selectId).selectedOptions;
+        for (let option of options) {
+            selected.push(parseInt(option.value));
+        }
+        return selected;
+    }
+
 </script>
 </body>
 </html>

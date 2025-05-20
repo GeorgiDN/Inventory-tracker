@@ -32,8 +32,8 @@ async function addProduct() {
     const barcode = barcodeValue === '' ? null : barcodeValue
     const quantityValue = document.getElementById('product-quantity').value;
     const quantity = quantityValue === '' ? null : quantityValue
-    const sell_price = document.getElementById('product-sell-price').value;
-    const buy_price = document.getElementById('product-buy-price').value;
+    const sell_price = document.getElementById('product-sell-price').value || 0;
+    const buy_price = document.getElementById('product-buy-price').value || 0;
 
     const warehouse = document.getElementById('warehouse').value || null;
     const shelf = document.getElementById('shelf').value || null;
@@ -72,14 +72,15 @@ async function addProduct() {
     if (response.ok) {
         alert('Product added!');
         loadProducts();
+        clearInputs();
     } else {
         const error = await response.json();
         alert('Error: ' + JSON.stringify(error));
     }
+    clearInputs(name, sku, model, model_2, model_3, model_4, model_5, barcode, quantity, sell_price, buy_price);
 }
 
 async function loadProducts() {
-    debugger
     const response = await fetch(API_URL);
     const products = await response.json();
     const tableBody = document.querySelector('#products-table tbody');
@@ -93,6 +94,10 @@ async function loadProducts() {
             <td>${product.sku}</td>
             <td>${product.model || ''}</td>
             <td>${product.vendor_details ? product.vendor_details.map(v => v.name).join(', ') : ''}</td>
+            <td>${product.warehouse_name || ''}</td>
+            <td>${product.shelf_name || ''}</td>
+            <td>${product.box || ''}</td>
+            <td>${product.bag || ''}</td>
             <td>${product.sell_price}</td>
         `;
         row.onclick = () => loadProductDetails(product.id);
@@ -102,7 +107,6 @@ async function loadProducts() {
 }
 
 loadProducts();
-
 
 async function loadProductDetails(id) {
     try {
@@ -146,8 +150,6 @@ async function loadProductDetails(id) {
 }
 
 
-
-
 function getSelectedValues(selectId) {
     const selected = [];
     const options = document.getElementById(selectId).selectedOptions;
@@ -155,4 +157,33 @@ function getSelectedValues(selectId) {
         selected.push(option.value);
     }
     return selected;
+}
+
+function clearInputs() {
+    // Clear text inputs
+    document.getElementById('product-name').value = '';
+    document.getElementById('product-sku').value = '';
+    document.getElementById('product-model').value = '';
+    document.getElementById('product-model-2').value = '';
+    document.getElementById('product-model-3').value = '';
+    document.getElementById('product-model-4').value = '';
+    document.getElementById('product-model-5').value = '';
+    document.getElementById('product-barcode').value = '';
+    document.getElementById('product-quantity').value = '';
+    document.getElementById('product-sell-price').value = '';
+    document.getElementById('product-buy-price').value = '';
+    document.getElementById('box').value = '';
+    document.getElementById('bag').value = '';
+    document.getElementById('additional_info').value = '';
+
+    // Reset selects
+    document.getElementById('warehouse').selectedIndex = 0;
+    document.getElementById('shelf').selectedIndex = 0;
+    document.getElementById('product-manufacturer').selectedIndex = 0;
+    document.getElementById('product-category').selectedIndex = 0;
+
+    const vendorSelect = document.getElementById('product-vendor');
+    Array.from(vendorSelect.options).forEach(option => {
+        option.selected = false;
+    });
 }

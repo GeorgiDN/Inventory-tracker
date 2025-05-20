@@ -11,55 +11,63 @@
 <div class="container-fluid mt-4">
     <div class="row">
         <button id="toggle-form" class="btn btn-primary mb-3">Show/Hide Product Form</button>
-        <div class="col-md-6 product-form-container" style="display: none">
+        <div class="product-form-container" style="display: none">
+            
+            <section>
+                <h1>My products</h1>
 
-            <h1>My products</h1>
+                <h2>Save product</h2>
+                <input type="hidden" id="product-id">
+                <input type="text" id="product-name" placeholder="Product name"><br>
+                <input type="text" id="product-sku" placeholder="SKU"><br>
+                <input type="text" id="product-model" placeholder="Model"><br>
+                <input type="text" id="product-model-2" placeholder="Model 2"><br>
+                <input type="text" id="product-model-3" placeholder="Model 3"><br>
+                <input type="text" id="product-model-4" placeholder="Model 4"><br>
+                <input type="text" id="product-model-5" placeholder="Model 5"><br>
+                <input type="number" id="product-barcode" placeholder="Barcode"><br>
+                <input type="text" id="product-quantity" placeholder="Quantity"><br>
+                <input type="number" id="product-sell-price" placeholder="Sell Price"><br>
+                <input type="number" id="product-buy-price" placeholder="Buy Price"><br>
+                
+            </section>
 
-            <h2>Add product</h2>
+            <section>
+                <input type="text" id="box" placeholder="Box"><br>
+                <input type="text" id="bag" placeholder="Bag"><br>
+                <textarea name="additional_info" id="additional_info" cols="30" rows="10"
+                          placeholder="Additional info"></textarea>
 
-            <input type="text" id="product-name" placeholder="Product name"><br>
-            <input type="text" id="product-sku" placeholder="SKU"><br>
-            <input type="text" id="product-model" placeholder="Model"><br>
-            <input type="text" id="product-model-2" placeholder="Model 2"><br>
-            <input type="text" id="product-model-3" placeholder="Model 3"><br>
-            <input type="text" id="product-model-4" placeholder="Model 4"><br>
-            <input type="text" id="product-model-5" placeholder="Model 5"><br>
-            <input type="number" id="product-barcode" placeholder="Barcode"><br>
-            <input type="text" id="product-quantity" placeholder="Quantity"><br>
-            <input type="number" id="product-sell-price" placeholder="Sell Price"><br>
-            <input type="number" id="product-buy-price" placeholder="Buy Price"><br>
+                <select id="warehouse">
+                    <option value="">-- Select Warehouse --</option>
+                </select>
 
-            <input type="text" id="box" placeholder="Box"><br>
-            <input type="text" id="bag" placeholder="Bag"><br>
-            <textarea name="additional_info" id="additional_info" cols="30" rows="10"
-                      placeholder="Additional info"></textarea>
+                <select id="shelf">
+                    <option value="">-- Select Shelf --</option>
+                </select>
 
-            <select id="warehouse">
-                <option value="">-- Select Warehouse --</option>
-            </select>
+                <select id="product-vendor" multiple>
+                    <option value="">-- Select Vendor --</option>
+                </select>
 
-            <select id="shelf">
-                <option value="">-- Select Shelf --</option>
-            </select>
+                <select id="product-manufacturer">
+                    <option value="">-- Select Manufacturer --</option>
+                </select>
 
-            <select id="product-vendor" multiple>
-                <option value="">-- Select Vendor --</option>
-            </select>
+                <select id="product-category">
+                    <option value="">-- Select Category --</option>
+                </select>
 
-            <select id="product-manufacturer">
-                <option value="">-- Select Manufacturer --</option>
-            </select>
+                <input type="hidden" id="csrftoken" value="{{ csrf_token }}">
+                <button onclick="saveProduct()" id="save-product-btn">Add product</button>
+                <button onclick="resetForm()" class="btn btn-secondary">Cancel</button>
 
-            <select id="product-category">
-                <option value="">-- Select Category --</option>
-            </select>
+            </section>
 
-            <input type="hidden" id="csrftoken" value="{{ csrf_token }}">
 
-            <button onclick="addProduct()">Add product</button>
         </div>
     </div>
-    <table class="table table-striped" id="products-table">
+    <table class="table table-striped mt-4" id="products-table">
         <thead>
         <tr>
             <th>Name</th>
@@ -71,6 +79,7 @@
             <th>Box</th>
             <th>Bag</th>
             <th>Sell Price</th>
+            <th>Actions</th>
         </tr>
         </thead>
         <tbody></tbody>
@@ -110,7 +119,7 @@
 <script src="{% static 'js/products.js' %}"></script>
 
 <script>
-    document.getElementById('toggle-form').addEventListener('click', function() {
+    document.getElementById('toggle-form').addEventListener('click', function () {
         const formContainer = document.querySelector('.product-form-container');
         if (formContainer.style.display === 'none') {
             formContainer.style.display = 'block';

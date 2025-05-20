@@ -133,3 +133,8 @@ button:hover {
     font-weight: 500;
     color: #495057;
 }
+
+.product-form-container {
+    display: flex !important;
+    gap: 1rem;
+}

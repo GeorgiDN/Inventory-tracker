@@ -1,6 +1,7 @@
 const csrftoken = document.getElementById('csrftoken').value;
 const API_URL = 'http://127.0.0.1:8000/api/products/';
 
+let isEditMode = false;
 async function loadSelectOptions(apiUrl, selectId) {
     const response = await fetch(apiUrl);
     const items = await response.json();
@@ -20,91 +21,91 @@ loadSelectOptions('http://127.0.0.1:8000/api/vendors/', 'product-vendor');
 loadSelectOptions('http://127.0.0.1:8000/api/manufacturers/', 'product-manufacturer');
 loadSelectOptions('http://127.0.0.1:8000/api/categories/', 'product-category');
 
-async function addProduct() {
-    const name = document.getElementById('product-name').value;
-    const sku = document.getElementById('product-sku').value;
-    const model = document.getElementById('product-model').value;
-    const model_2 = document.getElementById('product-model-2').value;
-    const model_3 = document.getElementById('product-model-3').value;
-    const model_4 = document.getElementById('product-model-4').value;
-    const model_5 = document.getElementById('product-model-5').value;
-    const barcodeValue = document.getElementById('product-barcode').value.trim();
-    const barcode = barcodeValue === '' ? null : barcodeValue
-    const quantityValue = document.getElementById('product-quantity').value;
-    const quantity = quantityValue === '' ? null : quantityValue
-    const sell_price = document.getElementById('product-sell-price').value || 0;
-    const buy_price = document.getElementById('product-buy-price').value || 0;
+// async function addProduct() {
+//     const name = document.getElementById('product-name').value;
+//     const sku = document.getElementById('product-sku').value;
+//     const model = document.getElementById('product-model').value;
+//     const model_2 = document.getElementById('product-model-2').value;
+//     const model_3 = document.getElementById('product-model-3').value;
+//     const model_4 = document.getElementById('product-model-4').value;
+//     const model_5 = document.getElementById('product-model-5').value;
+//     const barcodeValue = document.getElementById('product-barcode').value.trim();
+//     const barcode = barcodeValue === '' ? null : barcodeValue
+//     const quantityValue = document.getElementById('product-quantity').value;
+//     const quantity = quantityValue === '' ? null : quantityValue
+//     const sell_price = document.getElementById('product-sell-price').value || 0;
+//     const buy_price = document.getElementById('product-buy-price').value || 0;
+//
+//     const warehouse = document.getElementById('warehouse').value || null;
+//     const shelf = document.getElementById('shelf').value || null;
+//     const vendor = getSelectedValues('product-vendor');
+//     const manufacturer = document.getElementById('product-manufacturer').value || null;
+//     const category = document.getElementById('product-category').value || null;
+//
+//     const productData = {
+//         name,
+//         sku,
+//         model,
+//         model_2,
+//         model_3,
+//         model_4,
+//         model_5,
+//         barcode,
+//         quantity,
+//         sell_price,
+//         buy_price,
+//         warehouse,
+//         shelf,
+//         vendor,
+//         manufacturer,
+//         category,
+//     };
+//
+//     const response = await fetch(API_URL, {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRFToken': csrftoken
+//         },
+//         body: JSON.stringify(productData)
+//     });
+//
+//     if (response.ok) {
+//         alert('Product added!');
+//         loadProducts();
+//         clearInputs();
+//     } else {
+//         const error = await response.json();
+//         alert('Error: ' + JSON.stringify(error));
+//     }
+//     clearInputs(name, sku, model, model_2, model_3, model_4, model_5, barcode, quantity, sell_price, buy_price);
+// }
 
-    const warehouse = document.getElementById('warehouse').value || null;
-    const shelf = document.getElementById('shelf').value || null;
-    const vendor = getSelectedValues('product-vendor');
-    const manufacturer = document.getElementById('product-manufacturer').value || null;
-    const category = document.getElementById('product-category').value || null;
-
-    const productData = {
-        name,
-        sku,
-        model,
-        model_2,
-        model_3,
-        model_4,
-        model_5,
-        barcode,
-        quantity,
-        sell_price,
-        buy_price,
-        warehouse,
-        shelf,
-        vendor,
-        manufacturer,
-        category,
-    };
-
-    const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify(productData)
-    });
-
-    if (response.ok) {
-        alert('Product added!');
-        loadProducts();
-        clearInputs();
-    } else {
-        const error = await response.json();
-        alert('Error: ' + JSON.stringify(error));
-    }
-    clearInputs(name, sku, model, model_2, model_3, model_4, model_5, barcode, quantity, sell_price, buy_price);
-}
-
-async function loadProducts() {
-    const response = await fetch(API_URL);
-    const products = await response.json();
-    const tableBody = document.querySelector('#products-table tbody');
-    tableBody.innerHTML = '';
-
-    products.forEach(product => {
-        const row = document.createElement('tr');
-
-        row.innerHTML = `
-            <td>${product.name}</td>
-            <td>${product.sku}</td>
-            <td>${product.model || ''}</td>
-            <td>${product.vendor_details ? product.vendor_details.map(v => v.name).join(', ') : ''}</td>
-            <td>${product.warehouse_name || ''}</td>
-            <td>${product.shelf_name || ''}</td>
-            <td>${product.box || ''}</td>
-            <td>${product.bag || ''}</td>
-            <td>${product.sell_price}</td>
-        `;
-        row.onclick = () => loadProductDetails(product.id);
-
-        tableBody.appendChild(row);
-    });
-}
+// async function loadProducts() {
+//     const response = await fetch(API_URL);
+//     const products = await response.json();
+//     const tableBody = document.querySelector('#products-table tbody');
+//     tableBody.innerHTML = '';
+//
+//     products.forEach(product => {
+//         const row = document.createElement('tr');
+//
+//         row.innerHTML = `
+//             <td>${product.name}</td>
+//             <td>${product.sku}</td>
+//             <td>${product.model || ''}</td>
+//             <td>${product.vendor_details ? product.vendor_details.map(v => v.name).join(', ') : ''}</td>
+//             <td>${product.warehouse_name || ''}</td>
+//             <td>${product.shelf_name || ''}</td>
+//             <td>${product.box || ''}</td>
+//             <td>${product.bag || ''}</td>
+//             <td>${product.sell_price}</td>
+//         `;
+//         row.onclick = () => loadProductDetails(product.id);
+//
+//         tableBody.appendChild(row);
+//     });
+// }
 
 loadProducts();
 
@@ -149,7 +150,6 @@ async function loadProductDetails(id) {
     }
 }
 
-
 function getSelectedValues(selectId) {
     const selected = [];
     const options = document.getElementById(selectId).selectedOptions;
@@ -159,8 +159,99 @@ function getSelectedValues(selectId) {
     return selected;
 }
 
-function clearInputs() {
-    // Clear text inputs
+
+async function saveProduct() {
+    const productId = document.getElementById('product-id').value;
+    const url = productId ? `${API_URL}${productId}/` : API_URL;
+    const method = productId ? 'PUT' : 'POST';
+
+    const productData = {
+        name: document.getElementById('product-name').value,
+        sku: document.getElementById('product-sku').value,
+        model: document.getElementById('product-model').value,
+        model_2: document.getElementById('product-model-2').value,
+        model_3: document.getElementById('product-model-3').value,
+        model_4: document.getElementById('product-model-4').value,
+        model_5: document.getElementById('product-model-5').value,
+        barcode: document.getElementById('product-barcode').value.trim() || null,
+        quantity: document.getElementById('product-quantity').value || null,
+        sell_price: document.getElementById('product-sell-price').value || 0,
+        buy_price: document.getElementById('product-buy-price').value || 0,
+        warehouse: document.getElementById('warehouse').value || null,
+        shelf: document.getElementById('shelf').value || null,
+        vendor: getSelectedValues('product-vendor'),
+        manufacturer: document.getElementById('product-manufacturer').value || null,
+        category: document.getElementById('product-category').value || null,
+        box: document.getElementById('box').value,
+        bag: document.getElementById('bag').value,
+        additional_info: document.getElementById('additional_info').value
+    };
+
+    const response = await fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(productData)
+    });
+
+    if (response.ok) {
+        alert(`Product ${productId ? 'updated' : 'added'} successfully!`);
+        loadProducts();
+        resetForm();
+    } else {
+        const error = await response.json();
+        alert('Error: ' + JSON.stringify(error));
+    }
+}
+
+function populateFormForEdit(product) {
+    isEditMode = true;
+    document.getElementById('product-id').value = product.id;
+    document.getElementById('product-name').value = product.name;
+    document.getElementById('product-sku').value = product.sku;
+    document.getElementById('product-model').value = product.model || '';
+    document.getElementById('product-model-2').value = product.model_2 || '';
+    document.getElementById('product-model-3').value = product.model_3 || '';
+    document.getElementById('product-model-4').value = product.model_4 || '';
+    document.getElementById('product-model-5').value = product.model_5 || '';
+    document.getElementById('product-barcode').value = product.barcode || '';
+    document.getElementById('product-quantity').value = product.quantity || '';
+    document.getElementById('product-sell-price').value = product.sell_price || '';
+    document.getElementById('product-buy-price').value = product.buy_price || '';
+    document.getElementById('box').value = product.box || '';
+    document.getElementById('bag').value = product.bag || '';
+    document.getElementById('additional_info').value = product.additional_info || '';
+
+    if (product.warehouse) {
+        document.getElementById('warehouse').value = product.warehouse;
+    }
+    if (product.shelf) {
+        document.getElementById('shelf').value = product.shelf;
+    }
+    if (product.manufacturer) {
+        document.getElementById('product-manufacturer').value = product.manufacturer;
+    }
+    if (product.category) {
+        document.getElementById('product-category').value = product.category;
+    }
+
+    // Set multi-select vendors
+    const vendorSelect = document.getElementById('product-vendor');
+    if (product.vendor_details && product.vendor_details.length > 0) {
+        Array.from(vendorSelect.options).forEach(option => {
+            option.selected = product.vendor_details.some(v => v.id.toString() === option.value);
+        });
+    }
+
+    document.getElementById('save-product-btn').textContent = 'Update Product';
+    document.querySelector('.product-form-container h2').textContent = 'Edit Product';
+    document.querySelector('.product-form-container').style.display = 'block';
+}
+
+function resetForm() {
+    document.getElementById('product-id').value = '';
     document.getElementById('product-name').value = '';
     document.getElementById('product-sku').value = '';
     document.getElementById('product-model').value = '';
@@ -176,7 +267,6 @@ function clearInputs() {
     document.getElementById('bag').value = '';
     document.getElementById('additional_info').value = '';
 
-    // Reset selects
     document.getElementById('warehouse').selectedIndex = 0;
     document.getElementById('shelf').selectedIndex = 0;
     document.getElementById('product-manufacturer').selectedIndex = 0;
@@ -186,4 +276,81 @@ function clearInputs() {
     Array.from(vendorSelect.options).forEach(option => {
         option.selected = false;
     });
+
+    document.getElementById('save-product-btn').textContent = 'Add Product';
+    document.querySelector('.product-form-container h2').textContent = 'Add Product';
+    isEditMode = false;
 }
+
+
+async function loadProducts() {
+    const response = await fetch(API_URL);
+    const products = await response.json();
+    const tableBody = document.querySelector('#products-table tbody');
+    tableBody.innerHTML = '';
+
+    products.forEach(product => {
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td>${product.name}</td>
+            <td>${product.sku}</td>
+            <td>${product.model || ''}</td>
+            <td>${product.vendor_details ? product.vendor_details.map(v => v.name).join(', ') : ''}</td>
+            <td>${product.warehouse_name || ''}</td>
+            <td>${product.shelf_name || ''}</td>
+            <td>${product.box || ''}</td>
+            <td>${product.bag || ''}</td>
+            <td>${product.sell_price}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); editProduct('${product.id}')">
+                    Edit
+                </button>
+            </td>
+        `;
+
+        row.onclick = () => loadProductDetails(product.id);
+        tableBody.appendChild(row);
+    });
+}
+
+// Edit product function
+async function editProduct(id) {
+    try {
+        const response = await fetch(`${API_URL}${id}/`);
+        const product = await response.json();
+        populateFormForEdit(product);
+    } catch (error) {
+        console.error('Error loading product for edit:', error);
+        alert('Error loading product for editing');
+    }
+}
+
+// function clearInputs() {
+//     // Clear text inputs
+//     document.getElementById('product-name').value = '';
+//     document.getElementById('product-sku').value = '';
+//     document.getElementById('product-model').value = '';
+//     document.getElementById('product-model-2').value = '';
+//     document.getElementById('product-model-3').value = '';
+//     document.getElementById('product-model-4').value = '';
+//     document.getElementById('product-model-5').value = '';
+//     document.getElementById('product-barcode').value = '';
+//     document.getElementById('product-quantity').value = '';
+//     document.getElementById('product-sell-price').value = '';
+//     document.getElementById('product-buy-price').value = '';
+//     document.getElementById('box').value = '';
+//     document.getElementById('bag').value = '';
+//     document.getElementById('additional_info').value = '';
+//
+//     // Reset selects
+//     document.getElementById('warehouse').selectedIndex = 0;
+//     document.getElementById('shelf').selectedIndex = 0;
+//     document.getElementById('product-manufacturer').selectedIndex = 0;
+//     document.getElementById('product-category').selectedIndex = 0;
+//
+//     const vendorSelect = document.getElementById('product-vendor');
+//     Array.from(vendorSelect.options).forEach(option => {
+//         option.selected = false;
+//     });
+// }

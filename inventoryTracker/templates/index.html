@@ -1,161 +1,107 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'styles.css' %}">
     <title>Title</title>
 </head>
 <body>
-<h1>My products</h1>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            <h1>My products</h1>
 
-<h2>Add product</h2>
+            <h2>Add product</h2>
 
-<input type="text" id="product-name" placeholder="Product name"><br>
-<input type="text" id="product-sku" placeholder="SKU"><br>
-<input type="text" id="product-model" placeholder="Model"><br>
-<input type="text" id="product-model-2" placeholder="Model 2"><br>
-<input type="text" id="product-model-3" placeholder="Model 3"><br>
-<input type="text" id="product-model-4" placeholder="Model 4"><br>
-<input type="text" id="product-model-5" placeholder="Model 5"><br>
-<input type="number" id="product-barcode" placeholder="Barcode"><br>
-<input type="text" id="product-quantity" placeholder="Quantity"><br>
-<input type="number" id="product-sell-price" placeholder="Sell Price"><br>
-<input type="number" id="product-buy-price" placeholder="Buy Price"><br>
+            <input type="text" id="product-name" placeholder="Product name"><br>
+            <input type="text" id="product-sku" placeholder="SKU"><br>
+            <input type="text" id="product-model" placeholder="Model"><br>
+            <input type="text" id="product-model-2" placeholder="Model 2"><br>
+            <input type="text" id="product-model-3" placeholder="Model 3"><br>
+            <input type="text" id="product-model-4" placeholder="Model 4"><br>
+            <input type="text" id="product-model-5" placeholder="Model 5"><br>
+            <input type="number" id="product-barcode" placeholder="Barcode"><br>
+            <input type="text" id="product-quantity" placeholder="Quantity"><br>
+            <input type="number" id="product-sell-price" placeholder="Sell Price"><br>
+            <input type="number" id="product-buy-price" placeholder="Buy Price"><br>
 
-<input type="text" id="box" placeholder="Box"><br>
-<input type="text" id="bag" placeholder="Bag"><br>
-<textarea name="additional_info" id="additional_info" cols="30" rows="10" placeholder="Additional info"></textarea>
+            <input type="text" id="box" placeholder="Box"><br>
+            <input type="text" id="bag" placeholder="Bag"><br>
+            <textarea name="additional_info" id="additional_info" cols="30" rows="10"
+                      placeholder="Additional info"></textarea>
+            
+            <select id="warehouse">
+                <option value="">-- Select Warehouse --</option>
+            </select>
 
+            <select id="shelf">
+                <option value="">-- Select Shelf --</option>
+            </select>
 
-<select id="warehouse">
-    <option value="">-- Select Warehouse --</option>
-</select>
+            <select id="product-vendor" multiple>
+                <option value="">-- Select Vendor --</option>
+            </select>
 
-<select id="shelf">
-    <option value="">-- Select Shelf --</option>
-</select>
+            <select id="product-manufacturer">
+                <option value="">-- Select Manufacturer --</option>
+            </select>
 
-<select id="product-vendor" multiple>
-    <option value="">-- Select Vendor --</option>
-</select>
+            <select id="product-category">
+                <option value="">-- Select Category --</option>
+            </select>
 
-<select id="product-manufacturer">
-    <option value="">-- Select Manufacturer --</option>
-</select>
+            <input type="hidden" id="csrftoken" value="{{ csrf_token }}">
 
-<select id="product-category">
-    <option value="">-- Select Category --</option>
-</select>
+            <button onclick="addProduct()">Add product</button>
+        </div>
+    </div>
+    <table class="table table-striped" id="products-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>SKU</th>
+            <th>Model</th>
+            <th>Vendor</th>
+            <th>Sell Price</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+    
+    <div id="product-details" class="mt-4 p-3 border rounded bg-light" style="display: none;">
+    <h4>Product Details</h4>
+    <p><strong>Name:</strong> <span id="detail-name"></span></p>
+    <p><strong>SKU:</strong> <span id="detail-sku"></span></p>
+    <p><strong>Model:</strong> <span id="detail-model"></span></p>
+    <p><strong>Barcode:</strong> <span id="detail-barcode"></span></p>
+    <p><strong>Quantity:</strong> <span id="detail-quantity"></span></p>
+    <p><strong>Category:</strong> <span id="detail-category"></span></p>
+        
+    <p><strong>Warehouse:</strong> <span id="detail-warehouse"></span></p>
+    <p><strong>Shelf:</strong> <span id="detail-shelf"></span></p>
+    <p><strong>Box:</strong> <span id="detail-box"></span></p>
+    <p><strong>Bag:</strong> <span id="detail-bag"></span></p>
+        
+    <p><strong>Vendors:</strong> <span id="detail-vendors"></span></p>
+    <p><strong>Manufacturer:</strong> <span id="detail-manufacturer"></span></p>
+    <p><strong>Model-2:</strong> <span id="detail-model-2"></span></p>
+    <p><strong>Model-3:</strong> <span id="detail-model-3"></span></p>
+    <p><strong>Model-4:</strong> <span id="detail-model-4"></span></p>
+    <p><strong>Model-5:</strong> <span id="detail-model-5"></span></p>
+    
+    <p><strong>Sell price:</strong> <span id="detail-sell-price"></span></p>
+    <p><strong>Buy price:</strong> <span id="detail-buy-price"></span></p>
+        
+    <p><strong>Created-at:</strong> <span id="detail-created-at"></span></p>
+    <p><strong>Updated-at:</strong> <span id="detail-updated-at"></span></p>
+    <p><strong>Additional-info:</strong> <span id="detail-additional-info"></span></p>
+        
+</div>
+</div>
 
-<button onclick="addProduct()">Add product</button>
+<script src="{% static 'js/products.js' %}"></script>
 
-<ul id="products-list"></ul>
-{% csrf_token %}
-<script>
-    const csrftoken = '{{ csrf_token }}';
-    const API_URL = 'http://127.0.0.1:8000/api/products/';
-
-    async function loadSelectOptions(apiUrl, selectId) {
-        const response = await fetch(apiUrl);
-        const items = await response.json();
-        const select = document.getElementById(selectId);
-
-        items.forEach(item => {
-            const option = document.createElement('option');
-            option.value = item.id;
-            option.textContent = item.name;
-            select.appendChild(option);
-        });
-    }
-
-    loadSelectOptions('http://127.0.0.1:8000/api/warehouses/', 'warehouse');
-    loadSelectOptions('http://127.0.0.1:8000/api/shelfs/', 'shelf');
-    loadSelectOptions('http://127.0.0.1:8000/api/vendors/', 'product-vendor');
-    loadSelectOptions('http://127.0.0.1:8000/api/manufacturers/', 'product-manufacturer');
-    loadSelectOptions('http://127.0.0.1:8000/api/categories/', 'product-category');
-
-
-    async function addProduct() {
-        const name = document.getElementById('product-name').value;
-        const sku = document.getElementById('product-sku').value;
-        const model = document.getElementById('product-model').value;
-        const model_2 = document.getElementById('product-model-2').value;
-        const model_3 = document.getElementById('product-model-3').value;
-        const model_4 = document.getElementById('product-model-4').value;
-        const model_5 = document.getElementById('product-model-5').value;
-        const barcodeValue = document.getElementById('product-barcode').value.trim();
-        const barcode = barcodeValue === '' ? null : barcodeValue
-        const quantityValue = document.getElementById('product-quantity').value;
-        const quantity = quantityValue === '' ? null : quantityValue
-        const sell_price = document.getElementById('product-sell-price').value;
-        const buy_price = document.getElementById('product-buy-price').value;
-
-        const warehouse = document.getElementById('warehouse').value || null;
-        const shelf = document.getElementById('shelf').value || null;
-        const vendor = getSelectedValues('product-vendor');
-        const manufacturer = document.getElementById('product-manufacturer').value || null;
-        const category = document.getElementById('product-category').value || null;
-
-        const productData = {
-            name,
-            sku,
-            model,
-            model_2,
-            model_3,
-            model_4,
-            model_5,
-            barcode,
-            quantity,
-            sell_price,
-            buy_price,
-            warehouse,
-            shelf,
-            vendor,
-            manufacturer,
-            category,
-        };
-
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify(productData)
-        });
-
-        if (response.ok) {
-            alert('Product added!');
-            loadProducts();
-        } else {
-            const error = await response.json();
-            alert('Error: ' + JSON.stringify(error));
-        }
-    }
-
-    async function loadProducts() {
-        const response = await fetch(API_URL);
-        const products = await response.json();
-        const list = document.getElementById('products-list');
-        list.innerHTML = '';
-
-        products.forEach(product => {
-            const li = document.createElement('li');
-            li.textContent = `${product.name} (SKU: ${product.sku}) - $${product.sell_price}`;
-            list.appendChild(li);
-        });
-    }
-
-    loadProducts();
-
-    function getSelectedValues(selectId) {
-        const selected = [];
-        const options = document.getElementById(selectId).selectedOptions;
-        for (let option of options) {
-            selected.push(option.value);
-        }
-        return selected;
-    }
-
-</script>
 </body>
 </html>

@@ -92,7 +92,7 @@ async function loadProducts() {
             <td>${product.name}</td>
             <td>${product.sku}</td>
             <td>${product.model || ''}</td>
-            <td>${(product.vendor || []).map(v => v.name).join(', ')}</td>
+            <td>${product.vendor_details ? product.vendor_details.map(v => v.name).join(', ') : ''}</td>
             <td>${product.sell_price}</td>
         `;
         row.onclick = () => loadProductDetails(product.id);
@@ -115,15 +115,16 @@ async function loadProductDetails(id) {
         document.getElementById('detail-model').textContent = product.model || '';
         document.getElementById('detail-barcode').textContent = product.barcode || '';
         document.getElementById('detail-quantity').textContent = product.quantity || '';
-        document.getElementById('detail-category').textContent = product.category || '';
+        document.getElementById('detail-category').textContent = product.category_name || '';
 
-        document.getElementById('detail-warehouse').textContent = product.warehouse || '';
-        document.getElementById('detail-shelf').textContent = product.shelf || '';
+        document.getElementById('detail-warehouse').textContent = product.warehouse_name || '';
+        document.getElementById('detail-shelf').textContent = product.shelf_name || '';
         document.getElementById('detail-box').textContent = product.box || '';
         document.getElementById('detail-bag').textContent = product.bag || '';
 
-        document.getElementById('detail-vendors').textContent = (product.vendor || []).map(v => v.name).join(', ');
-        document.getElementById('detail-manufacturer').textContent = product.manufacturer || '';
+        document.getElementById('detail-vendors').textContent =
+            product.vendor_details.map(v => v.name).join(', ') || '';
+        document.getElementById('detail-manufacturer').textContent = product.manufacturer_name || '';
         document.getElementById('detail-model-2').textContent = product.model_2 || '';
         document.getElementById('detail-model-3').textContent = product.model_3 || '';
         document.getElementById('detail-model-4').textContent = product.model_4 || '';
@@ -134,7 +135,7 @@ async function loadProductDetails(id) {
 
         document.getElementById('detail-created-at').textContent = product.created_at;
         document.getElementById('detail-updated-at').textContent = product.updated_at;
-        document.getElementById('detail-additional-info').textContent = product.additional_info;
+        document.getElementById('detail-additional-info').textContent = product.additional_info || '';
 
         // Show the details div
         document.getElementById('product-details').style.display = 'block';
@@ -143,6 +144,8 @@ async function loadProductDetails(id) {
         console.error('Error loading product details:', error);
     }
 }
+
+
 
 
 function getSelectedValues(selectId) {

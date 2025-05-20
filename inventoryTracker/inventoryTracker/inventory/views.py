@@ -34,7 +34,18 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
 
-
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def perform_create(self, serializer):
+        vendor_ids = self.request.data.get('vendor', [])
+        product = serializer.save()
+        if vendor_ids:
+            product.vendor.set(vendor_ids)
+
+    def perform_update(self, serializer):
+        vendor_ids = self.request.data.get('vendor', [])
+        product = serializer.save()
+        if 'vendor' in self.request.data:
+            product.vendor.set(vendor_ids)

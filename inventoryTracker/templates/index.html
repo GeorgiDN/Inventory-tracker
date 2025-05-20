@@ -10,7 +10,9 @@
 <body>
 <div class="container-fluid mt-4">
     <div class="row">
-        <div class="col-md-6">
+        <button id="toggle-form" class="btn btn-primary mb-3">Show/Hide Product Form</button>
+        <div class="col-md-6 product-form-container" style="display: none">
+
             <h1>My products</h1>
 
             <h2>Add product</h2>
@@ -31,7 +33,7 @@
             <input type="text" id="bag" placeholder="Bag"><br>
             <textarea name="additional_info" id="additional_info" cols="30" rows="10"
                       placeholder="Additional info"></textarea>
-            
+
             <select id="warehouse">
                 <option value="">-- Select Warehouse --</option>
             </select>
@@ -58,7 +60,7 @@
         </div>
     </div>
     <table class="table table-striped" id="products-table">
-    <thead>
+        <thead>
         <tr>
             <th>Name</th>
             <th>SKU</th>
@@ -66,42 +68,53 @@
             <th>Vendor</th>
             <th>Sell Price</th>
         </tr>
-    </thead>
-    <tbody></tbody>
-</table>
-    
+        </thead>
+        <tbody></tbody>
+    </table>
+
     <div id="product-details" class="mt-4 p-3 border rounded bg-light" style="display: none;">
-    <h4>Product Details</h4>
-    <p><strong>Name:</strong> <span id="detail-name"></span></p>
-    <p><strong>SKU:</strong> <span id="detail-sku"></span></p>
-    <p><strong>Model:</strong> <span id="detail-model"></span></p>
-    <p><strong>Barcode:</strong> <span id="detail-barcode"></span></p>
-    <p><strong>Quantity:</strong> <span id="detail-quantity"></span></p>
-    <p><strong>Category:</strong> <span id="detail-category"></span></p>
-        
-    <p><strong>Warehouse:</strong> <span id="detail-warehouse"></span></p>
-    <p><strong>Shelf:</strong> <span id="detail-shelf"></span></p>
-    <p><strong>Box:</strong> <span id="detail-box"></span></p>
-    <p><strong>Bag:</strong> <span id="detail-bag"></span></p>
-        
-    <p><strong>Vendors:</strong> <span id="detail-vendors"></span></p>
-    <p><strong>Manufacturer:</strong> <span id="detail-manufacturer"></span></p>
-    <p><strong>Model-2:</strong> <span id="detail-model-2"></span></p>
-    <p><strong>Model-3:</strong> <span id="detail-model-3"></span></p>
-    <p><strong>Model-4:</strong> <span id="detail-model-4"></span></p>
-    <p><strong>Model-5:</strong> <span id="detail-model-5"></span></p>
-    
-    <p><strong>Sell price:</strong> <span id="detail-sell-price"></span></p>
-    <p><strong>Buy price:</strong> <span id="detail-buy-price"></span></p>
-        
-    <p><strong>Created-at:</strong> <span id="detail-created-at"></span></p>
-    <p><strong>Updated-at:</strong> <span id="detail-updated-at"></span></p>
-    <p><strong>Additional-info:</strong> <span id="detail-additional-info"></span></p>
-        
-</div>
+        <h4>Product Details</h4>
+        <p><strong>Name:</strong> <span id="detail-name"></span></p>
+        <p><strong>SKU:</strong> <span id="detail-sku"></span></p>
+        <p><strong>Model:</strong> <span id="detail-model"></span></p>
+        <p><strong>Barcode:</strong> <span id="detail-barcode"></span></p>
+        <p><strong>Quantity:</strong> <span id="detail-quantity"></span></p>
+        <p><strong>Category:</strong> <span id="detail-category"></span></p>
+
+        <p><strong>Warehouse:</strong> <span id="detail-warehouse"></span></p>
+        <p><strong>Shelf:</strong> <span id="detail-shelf"></span></p>
+        <p><strong>Box:</strong> <span id="detail-box"></span></p>
+        <p><strong>Bag:</strong> <span id="detail-bag"></span></p>
+
+        <p><strong>Vendors:</strong> <span id="detail-vendors"></span></p>
+        <p><strong>Manufacturer:</strong> <span id="detail-manufacturer"></span></p>
+        <p><strong>Model-2:</strong> <span id="detail-model-2"></span></p>
+        <p><strong>Model-3:</strong> <span id="detail-model-3"></span></p>
+        <p><strong>Model-4:</strong> <span id="detail-model-4"></span></p>
+        <p><strong>Model-5:</strong> <span id="detail-model-5"></span></p>
+
+        <p><strong>Sell price:</strong> <span id="detail-sell-price"></span></p>
+        <p><strong>Buy price:</strong> <span id="detail-buy-price"></span></p>
+
+        <p><strong>Created-at:</strong> <span id="detail-created-at"></span></p>
+        <p><strong>Updated-at:</strong> <span id="detail-updated-at"></span></p>
+        <p><strong>Additional-info:</strong> <span id="detail-additional-info"></span></p>
+
+    </div>
 </div>
 
 <script src="{% static 'js/products.js' %}"></script>
+
+<script>
+    document.getElementById('toggle-form').addEventListener('click', function() {
+        const formContainer = document.querySelector('.product-form-container');
+        if (formContainer.style.display === 'none') {
+            formContainer.style.display = 'block';
+        } else {
+            formContainer.style.display = 'none';
+        }
+    });
+</script>
 
 </body>
 </html>

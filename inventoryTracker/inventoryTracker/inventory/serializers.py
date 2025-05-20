@@ -33,13 +33,20 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    # vendor = serializers.PrimaryKeyRelatedField(
-    #     many=True,
-    #     queryset=Vendor.objects.all()
-    # )
-    vendor = VendorSerializer(many=True, read_only=True)
+    # For reading (display)
+    vendor_details = VendorSerializer(many=True, read_only=True, source='vendor')
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    manufacturer_name = serializers.CharField(source='manufacturer.name', read_only=True)
+    warehouse_name = serializers.CharField(source='warehouse.name', read_only=True)
+    shelf_name = serializers.CharField(source='shelf.name', read_only=True)
 
+    vendor = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=Vendor.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = Product
         fields = '__all__'
+        extra_fields = ['vendor_details', 'category_name', 'manufacturer_name', 'warehouse_name', 'shelf_name']

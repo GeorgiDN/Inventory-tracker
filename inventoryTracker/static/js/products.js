@@ -2,6 +2,7 @@ const csrftoken = document.getElementById('csrftoken').value;
 const API_URL = 'http://127.0.0.1:8000/api/products/';
 
 let isEditMode = false;
+
 async function loadSelectOptions(apiUrl, selectId) {
     const response = await fetch(apiUrl);
     const items = await response.json();
@@ -303,8 +304,13 @@ async function loadProducts() {
             <td>${product.bag || ''}</td>
             <td>${product.sell_price}</td>
             <td>
-                <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); editProduct('${product.id}')">
+                <button class="btn btn-sm btn-info" onclick="event.stopPropagation(); editProduct('${product.id}')">
                     Edit
+                </button>
+            </td>
+            <td>    
+                <button class="btn btn-sm btn-danger" id="delete-btn" onclick="deleteProduct('${product.id}')">
+                    Delete
                 </button>
             </td>
         `;
@@ -326,6 +332,32 @@ async function editProduct(id) {
     }
 }
 
+async function deleteProduct(productId) {
+    if (!confirm('Are you sure you want to delete this product?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}${productId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': csrftoken
+            }
+        });
+
+        if (response.ok) {
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error))
+        }
+
+    } catch (error) {
+        console.log('Error deleting product', error);
+        alert('Error deleting product')
+    }
+
+}
 // function clearInputs() {
 //     // Clear text inputs
 //     document.getElementById('product-name').value = '';

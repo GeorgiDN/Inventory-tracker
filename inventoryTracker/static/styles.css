@@ -135,6 +135,6 @@ button:hover {
 }
 
 .product-form-container {
-    display: flex !important;
+    display: flex;
     gap: 1rem;
 }

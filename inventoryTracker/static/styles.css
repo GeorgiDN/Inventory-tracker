@@ -138,3 +138,11 @@ button:hover {
     display: flex;
     gap: 1rem;
 }
+
+.table-hover tbody tr {
+    cursor: pointer;
+}
+
+/*.table-hover tbody tr td:not(:last-child):not(:nth-last-child(2)) {*/
+/*    cursor: pointer;*/
+/*}*/

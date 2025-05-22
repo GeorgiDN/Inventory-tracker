@@ -9,7 +9,7 @@ router.register(r'shelfs', ShelfViewSet)
 router.register(r'vendors', VendorViewSet)
 router.register(r'manufacturers', ManufacturerViewSet)
 router.register(r'categories', CategoryViewSet)
-router.register(r'products', ProductViewSet)
+router.register(r'products', ProductViewSet, basename='product')
 
 urlpatterns = [
     path('api/', include(router.urls)),

@@ -1,15 +1,21 @@
 from django.db import models
 
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+
 class Warehouse(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_warehouses')
     name = models.CharField(max_length=100)
-    location = models.TextField(blank=True, null=True)  # optional details
+    location = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return self.name
 
 
 class Shelf(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_shelves')
     name = models.CharField(max_length=100)
     warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='shelves')
 
@@ -18,6 +24,7 @@ class Shelf(models.Model):
 
 
 class Vendor(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_vendors')
     name = models.CharField(max_length=100, unique=True)
     contact_info = models.TextField(blank=True, null=True)
 
@@ -26,6 +33,7 @@ class Vendor(models.Model):
 
 
 class Manufacturer(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_manufacturers')
     name = models.CharField(max_length=100)
     website = models.URLField(blank=True, null=True)
 
@@ -34,6 +42,7 @@ class Manufacturer(models.Model):
 
 
 class Category(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_categories')
     name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
@@ -41,6 +50,7 @@ class Category(models.Model):
 
 
 class Product(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_products')
     name = models.CharField(max_length=255)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     sku = models.CharField(max_length=100, unique=True, help_text='Stock keeping unit')

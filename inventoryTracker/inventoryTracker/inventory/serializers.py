@@ -50,3 +50,4 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
         extra_fields = ['vendor_details', 'category_name', 'manufacturer_name', 'warehouse_name', 'shelf_name']
+        read_only_fields = ('user',)

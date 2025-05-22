@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+
 from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor
 from inventoryTracker.inventory.serializers import ProductSerializer, CategorySerializer, ManufacturerSerializer, \
     WareHouseSerializer, ShelfSerializer, VendorSerializer
@@ -43,17 +45,33 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Product.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         vendor_ids = self.request.data.get('vendor', [])
-        product = serializer.save()
+
+        # First save the product with the current user
+        product = serializer.save(user=self.request.user)
+
+        # Then handle the many-to-many relationship
         if vendor_ids:
-            product.vendor.set(vendor_ids)
+            # Filter vendors to only those belonging to the current user
+            valid_vendor_ids = self.request.user.vendors.filter(
+                id__in=vendor_ids
+            ).values_list('id', flat=True)
+            product.vendor.set(valid_vendor_ids)
 
     def perform_update(self, serializer):
         vendor_ids = self.request.data.get('vendor', [])
-        product = serializer.save()
+        product = serializer.save()  # User can't be changed on update
+
         if 'vendor' in self.request.data:
-            product.vendor.set(vendor_ids)
+            # Filter vendors to only those belonging to the current user
+            valid_vendor_ids = self.request.user.vendors.filter(
+                id__in=vendor_ids
+            ).values_list('id', flat=True)
+            product.vendor.set(valid_vendor_ids)

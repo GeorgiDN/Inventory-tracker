@@ -9,6 +9,14 @@ def index(request):
     return render(request, 'index.html')
 
 
+def products_view(request):
+    return render(request, 'products.html')
+
+
+def warehouse_view(request):
+    return render(request, 'warehouses.html')
+
+
 class WareHouseViewSet(viewsets.ModelViewSet):
     queryset = Warehouse.objects.all()
     serializer_class = WareHouseSerializer

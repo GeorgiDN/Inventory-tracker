@@ -38,9 +38,9 @@
     <script>
         const csrftoken = document.getElementById('csrftoken').value;
         const API_URL = 'http://127.0.0.1:8000/api/warehouses/';
-        
+
         document.addEventListener('DOMContentLoaded', loadWarehouses);
-        
+
         async function saveWarehouse() {
             const warehouseId = document.getElementById('warehouse-id').value;
             const url = warehouseId ? `${API_URL}${warehouseId}/` : API_URL;
@@ -83,46 +83,66 @@
         }
 
         async function loadWarehouses() {
-            try {
-                const response = await fetch(API_URL);
-                const warehouses = await response.json();
-                const tableBody = document.querySelector('#warehouse-table tbody');
-                tableBody.innerHTML = '';
+    try {
+        const response = await fetch(API_URL);
+        const warehouses = await response.json();
+        const tableBody = document.querySelector('#warehouse-table tbody');
 
-                warehouses.forEach(warehouse => {
-                    const row = document.createElement('tr');
-
-                    row.innerHTML = `
-                        <td>${warehouse.name}</td>
-                        <td>${warehouse.location || ''}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="editWarehouse('${warehouse.id}')">
-                                Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteWarehouse('${warehouse.id}')">
-                                Delete
-                            </button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('Error loading warehouses:', error);
-                alert('Error loading warehouses');
-            }
+        while (tableBody.firstChild) {
+            tableBody.removeChild(tableBody.firstChild);
         }
+
+        warehouses.forEach(warehouse => {
+            const row = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = warehouse.name;
+            row.appendChild(nameCell);
+
+            const locationCell = document.createElement('td');
+            locationCell.textContent = warehouse.location || '';
+            row.appendChild(locationCell);
+
+            const actionsCell = document.createElement('td');
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-sm btn-primary me-2';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                editWarehouse(warehouse.id);
+            });
+            actionsCell.appendChild(editBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteWarehouse(warehouse.id);
+            });
+            actionsCell.appendChild(deleteBtn);
+
+            row.appendChild(actionsCell);
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error loading warehouses:', error);
+        alert('Error loading warehouses');
+    }
+}
 
         async function editWarehouse(id) {
             try {
                 const response = await fetch(`${API_URL}${id}/`);
                 const warehouse = await response.json();
-                
+
                 // Populate form
                 document.getElementById('warehouse-id').value = warehouse.id;
                 document.getElementById('warehouse-name').value = warehouse.name;
                 document.getElementById('warehouse-location').value = warehouse.location || '';
                 document.getElementById('save-warehouse-btn').textContent = 'Update Warehouse';
-                
+
                 // Scroll to form
                 document.getElementById('warehouse-name').focus();
             } catch (error) {

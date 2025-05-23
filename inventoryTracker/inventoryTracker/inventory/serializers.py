@@ -25,7 +25,8 @@ class VendorSerializer(serializers.ModelSerializer):
 class ManufacturerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manufacturer
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'website']
+        read_only_fields = ('user',)
 
 
 class CategorySerializer(serializers.ModelSerializer):

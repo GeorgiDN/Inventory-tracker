@@ -23,6 +23,10 @@ def vendors_view(request):
     return render(request, 'vendors.html')
 
 
+def manufacturer_view(request):
+    return render(request, 'manufacturers.html')
+
+
 class WareHouseViewSet(viewsets.ModelViewSet):
     serializer_class = WareHouseSerializer
     permission_classes = [IsAuthenticated]
@@ -53,6 +57,12 @@ class VendorViewSet(viewsets.ModelViewSet):
 class ManufacturerViewSet(viewsets.ModelViewSet):
     queryset = Manufacturer.objects.all()
     serializer_class = ManufacturerSerializer
+
+    def get_queryset(self):
+        return Manufacturer.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class CategoryViewSet(viewsets.ModelViewSet):

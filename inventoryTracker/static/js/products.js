@@ -67,7 +67,7 @@ async function loadProductDetails(id) {
 
 const closeDetailsBtn = document.querySelector('.close-details-btn');
 const productDetails = document.querySelector('#product-details');
-closeDetailsBtn.addEventListener('click',function () {
+closeDetailsBtn.addEventListener('click', function () {
     productDetails.style.display = 'none'
 })
 
@@ -242,10 +242,18 @@ async function loadProducts() {
 }
 
 async function editProduct(id) {
+
     try {
         const response = await fetch(`${API_URL}${id}/`);
         const product = await response.json();
         populateFormForEdit(product);
+        const toggleButton = document.getElementById('toggle-form');
+        const formWrapper = document.querySelector('.product-form-wrapper');
+        const formContainer = document.querySelector('.product-form-container');
+        formWrapper.style.display = 'block';
+        formContainer.style.display = 'flex';
+        toggleButton.textContent = 'Hide Product Form';
+
     } catch (error) {
         console.error('Error loading product for edit:', error);
         alert('Error loading product for editing');

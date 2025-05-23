@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets
+from rest_framework import viewsets, serializers
 from rest_framework.permissions import IsAuthenticated
 
 from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor
@@ -30,8 +30,11 @@ class ShelfViewSet(viewsets.ModelViewSet):
 
 
 class VendorViewSet(viewsets.ModelViewSet):
-    queryset = Vendor.objects.all()
     serializer_class = VendorSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Vendor.objects.filter(user=self.request.user)
 
 
 class ManufacturerViewSet(viewsets.ModelViewSet):
@@ -47,31 +50,30 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
+    queryset = Product.objects.none()
 
     def get_queryset(self):
         return Product.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
         vendor_ids = self.request.data.get('vendor', [])
-
-        # First save the product with the current user
         product = serializer.save(user=self.request.user)
 
-        # Then handle the many-to-many relationship
+        # Convert vendor IDs to integers if they're strings
         if vendor_ids:
-            # Filter vendors to only those belonging to the current user
-            valid_vendor_ids = self.request.user.vendors.filter(
-                id__in=vendor_ids
-            ).values_list('id', flat=True)
-            product.vendor.set(valid_vendor_ids)
+            try:
+                vendor_ids = [int(vid) for vid in vendor_ids]
+                product.vendor.set(vendor_ids)
+            except (ValueError, TypeError) as e:
+                raise serializers.ValidationError({'vendor': 'Invalid vendor IDs'})
 
     def perform_update(self, serializer):
         vendor_ids = self.request.data.get('vendor', [])
-        product = serializer.save()  # User can't be changed on update
+        product = serializer.save()
 
         if 'vendor' in self.request.data:
-            # Filter vendors to only those belonging to the current user
-            valid_vendor_ids = self.request.user.vendors.filter(
-                id__in=vendor_ids
-            ).values_list('id', flat=True)
-            product.vendor.set(valid_vendor_ids)
+            try:
+                vendor_ids = [int(vid) for vid in vendor_ids]
+                product.vendor.set(vendor_ids)
+            except (ValueError, TypeError) as e:
+                raise serializers.ValidationError({'vendor': 'Invalid vendor IDs'})

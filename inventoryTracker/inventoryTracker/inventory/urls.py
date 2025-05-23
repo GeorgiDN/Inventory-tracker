@@ -6,7 +6,7 @@ from inventoryTracker.inventory.views import ProductViewSet, products_view, ware
 router = DefaultRouter()
 router.register(r'warehouses', WareHouseViewSet)
 router.register(r'shelfs', ShelfViewSet)
-router.register(r'vendors', VendorViewSet)
+router.register(r'vendors', VendorViewSet, basename='vendor')
 router.register(r'manufacturers', ManufacturerViewSet)
 router.register(r'categories', CategoryViewSet)
 router.register(r'products', ProductViewSet, basename='product')

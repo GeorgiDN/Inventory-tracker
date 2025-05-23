@@ -1,0 +1,178 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <h1>Vendors</h1>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <input type="hidden" id="csrftoken" value="{{ csrf_token }}">
+                    <input type="hidden" id="vendor-id">
+                    <label for="vendor-name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="vendor-name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="vendor-contact-info" class="form-label">Contact Info</label>
+                    <input type="text" class="form-control" id="vendor-contact-info">
+                </div>
+                <button onclick="saveVendor()" class="btn btn-primary" id="save-vendor-btn">
+                    Add Vendor
+                </button>
+                <button onclick="resetVendorForm()" class="btn btn-secondary">
+                    Cancel
+                </button>
+            </div>
+        </div>
+        <table class="table table-bordered table-hover mt-4" id="vendor-table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Contact Info</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script>
+        const csrftoken = document.getElementById('csrftoken').value;
+        const API_URL = 'http://127.0.0.1:8000/api/vendors/';
+
+        document.addEventListener('DOMContentLoaded', loadVendors);
+
+        async function saveVendor() {
+            const vendorId = document.getElementById('vendor-id').value;
+            const url = vendorId ? `${API_URL}${vendorId}/` : API_URL;
+            const method = vendorId ? 'PUT' : 'POST';
+
+            const vendorsData = {
+                name: document.getElementById('vendor-name').value,
+                contact_info: document.getElementById('vendor-contact-info').value
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(vendorsData)
+                });
+                if (response.ok) {
+                    alert(`Vendor ${vendorId ? 'updated' : 'added'} successfully!`);
+                    resetVendorForm();
+                    await loadVendors();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + JSON.stringify(error));
+                }
+            } catch (error) {
+                console.error('Error saving vendor:', error);
+                alert('Error saving vendor');
+            }
+        }
+
+        function resetVendorForm() {
+            document.getElementById('vendor-id').value = '';
+            document.getElementById('vendor-name').value = '';
+            document.getElementById('vendor-contact-info').value = '';
+            document.getElementById('save-vendor-btn').textContent = 'Add Vendor';
+        }
+
+        async function loadVendors() {
+    try {
+        const response = await fetch(API_URL);
+        const vendors = await response.json();
+        const tableBody = document.querySelector('#vendor-table tbody');
+
+        while (tableBody.firstChild) {
+            tableBody.removeChild(tableBody.firstChild);
+        }
+
+        vendors.forEach(vendor => {
+            const row = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = vendor.name;
+            row.appendChild(nameCell);
+
+            const locationCell = document.createElement('td');
+            locationCell.textContent = vendor.contact_info || '';
+            row.appendChild(locationCell);
+
+            const actionsCell = document.createElement('td');
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-sm btn-primary me-2';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                editVendor(vendor.id);
+            });
+            actionsCell.appendChild(editBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteVendor(vendor.id);
+            });
+            actionsCell.appendChild(deleteBtn);
+
+            row.appendChild(actionsCell);
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error loading vendors:', error);
+        alert('Error loading vendors');
+    }
+}
+
+        async function editVendor(id) {
+            try {
+                const response = await fetch(`${API_URL}${id}/`);
+                const vendor = await response.json();
+
+                // Populate form
+                document.getElementById('vendor-id').value = vendor.id;
+                document.getElementById('vendor-name').value = vendor.name;
+                document.getElementById('vendor-contact-info').value = vendor.location || '';
+                document.getElementById('save-vendor-btn').textContent = 'Update Vendor';
+
+                // Scroll to form
+                document.getElementById('vendor-name').focus();
+            } catch (error) {
+                console.error('Error loading vendor:', error);
+                alert('Error loading vendor details');
+            }
+        }
+
+        async function deleteVendor(id) {
+            if (!confirm('Are you sure you want to delete this vendor?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    }
+                });
+
+                if (response.ok) {
+                    await loadVendors();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + JSON.stringify(error));
+                }
+            } catch (error) {
+                console.error('Error deleting vendor:', error);
+                alert('Error deleting vendor');
+            }
+        }
+    </script>
+{% endblock %}

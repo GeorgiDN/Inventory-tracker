@@ -18,7 +18,8 @@ class ShelfSerializer(serializers.ModelSerializer):
 class VendorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vendor
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'contact_info', 'user']
+        read_only_fields = ('user',)
 
 
 class ManufacturerSerializer(serializers.ModelSerializer):

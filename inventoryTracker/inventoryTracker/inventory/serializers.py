@@ -5,7 +5,8 @@ from inventoryTracker.inventory.models import Product, Category, Manufacturer, W
 class WareHouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'location', 'user']
+        read_only_fields = ('user',)
 
 
 class ShelfSerializer(serializers.ModelSerializer):

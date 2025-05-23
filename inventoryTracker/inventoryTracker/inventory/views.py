@@ -20,8 +20,14 @@ def warehouse_view(request):
 
 
 class WareHouseViewSet(viewsets.ModelViewSet):
-    queryset = Warehouse.objects.all()
     serializer_class = WareHouseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Warehouse.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class ShelfViewSet(viewsets.ModelViewSet):

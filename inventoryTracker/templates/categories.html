@@ -1,0 +1,165 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <h1>Categorys</h1>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <input type="hidden" id="csrftoken" value="{{ csrf_token }}">
+                    <input type="hidden" id="category-id">
+                    <label for="category-name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="category-name" required>
+                </div>
+
+                <button onclick="saveCategory()" class="btn btn-primary" id="save-category-btn">
+                    Add Category
+                </button>
+                <button onclick="resetCategoryForm()" class="btn btn-secondary">
+                    Cancel
+                </button>
+            </div>
+        </div>
+        <table class="table table-bordered table-hover mt-4" id="category-table">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script>
+        const csrftoken = document.getElementById('csrftoken').value;
+        const API_URL = 'http://127.0.0.1:8000/api/categories/';
+
+        document.addEventListener('DOMContentLoaded', loadCategorys);
+
+        async function saveCategory() {
+            const categoryId = document.getElementById('category-id').value;
+            const url = categoryId ? `${API_URL}${categoryId}/` : API_URL;
+            const method = categoryId ? 'PUT' : 'POST';
+
+            const wareHouseData = {
+                name: document.getElementById('category-name').value,
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify(wareHouseData)
+                });
+                if (response.ok) {
+                    alert(`Category ${categoryId ? 'updated' : 'added'} successfully!`);
+                    resetCategoryForm();
+                    await loadCategorys();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + JSON.stringify(error));
+                }
+            } catch (error) {
+                console.error('Error saving category:', error);
+                alert('Error saving category');
+            }
+        }
+
+        function resetCategoryForm() {
+            document.getElementById('category-id').value = '';
+            document.getElementById('category-name').value = '';
+            document.getElementById('save-category-btn').textContent = 'Add Category';
+        }
+
+        async function loadCategorys() {
+    try {
+        const response = await fetch(API_URL);
+        const categories = await response.json();
+        const tableBody = document.querySelector('#category-table tbody');
+
+        while (tableBody.firstChild) {
+            tableBody.removeChild(tableBody.firstChild);
+        }
+
+        categories.forEach(category => {
+            const row = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = category.name;
+            row.appendChild(nameCell);
+
+            const actionsCell = document.createElement('td');
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-sm btn-primary me-2';
+            editBtn.textContent = 'Edit';
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                editCategory(category.id);
+            });
+            actionsCell.appendChild(editBtn);
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-sm btn-danger';
+            deleteBtn.textContent = 'Delete';
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                deleteCategory(category.id);
+            });
+            actionsCell.appendChild(deleteBtn);
+
+            row.appendChild(actionsCell);
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        alert('Error loading categories');
+    }
+}
+
+        async function editCategory(id) {
+            try {
+                const response = await fetch(`${API_URL}${id}/`);
+                const category = await response.json();
+                
+                document.getElementById('category-id').value = category.id;
+                document.getElementById('category-name').value = category.name;
+                document.getElementById('save-category-btn').textContent = 'Update Category';
+                
+                document.getElementById('category-name').focus();
+            } catch (error) {
+                console.error('Error loading category:', error);
+                alert('Error loading category details');
+            }
+        }
+
+        async function deleteCategory(id) {
+            if (!confirm('Are you sure you want to delete this category?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    }
+                });
+
+                if (response.ok) {
+                    await loadCategorys();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + JSON.stringify(error));
+                }
+            } catch (error) {
+                console.error('Error deleting category:', error);
+                alert('Error deleting category');
+            }
+        }
+    </script>
+{% endblock %}

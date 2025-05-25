@@ -19,6 +19,10 @@ def warehouse_view(request):
     return render(request, 'warehouses.html')
 
 
+def shelves_view(request):
+    return render(request, 'shelf.html')
+
+
 def vendors_view(request):
     return render(request, 'vendors.html')
 
@@ -43,8 +47,27 @@ class WareHouseViewSet(viewsets.ModelViewSet):
 
 
 class ShelfViewSet(viewsets.ModelViewSet):
-    queryset = Shelf.objects.all()
     serializer_class = ShelfSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Shelf.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        warehouse_id = self.request.data.get('warehouse')
+        try:
+            warehouse = Warehouse.objects.get(id=warehouse_id, user=self.request.user)
+            serializer.save(user=self.request.user, warehouse=warehouse)
+        except Warehouse.DoesNotExist:
+            raise serializers.ValidationError({'warehouse': 'Invalid warehouse selection'})
+
+    def perform_update(self, serializer):
+        warehouse_id = self.request.data.get('warehouse')
+        try:
+            warehouse = Warehouse.objects.get(id=warehouse_id, user=self.request.user)
+            serializer.save(warehouse=warehouse)
+        except Warehouse.DoesNotExist:
+            raise serializers.ValidationError({'warehouse': 'Invalid warehouse selection'})
 
 
 class VendorViewSet(viewsets.ModelViewSet):

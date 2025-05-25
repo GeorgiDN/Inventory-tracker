@@ -17,7 +17,7 @@ async function loadSelectOptions(apiUrl, selectId) {
 }
 
 loadSelectOptions('http://127.0.0.1:8000/api/warehouses/', 'warehouse');
-loadSelectOptions('http://127.0.0.1:8000/api/shelfs/', 'shelf');
+loadSelectOptions('http://127.0.0.1:8000/api/shelves/', 'shelf');
 loadSelectOptions('http://127.0.0.1:8000/api/vendors/', 'product-vendor');
 loadSelectOptions('http://127.0.0.1:8000/api/manufacturers/', 'product-manufacturer');
 loadSelectOptions('http://127.0.0.1:8000/api/categories/', 'product-category');

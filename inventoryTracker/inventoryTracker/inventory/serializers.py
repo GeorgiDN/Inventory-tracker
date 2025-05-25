@@ -10,9 +10,18 @@ class WareHouseSerializer(serializers.ModelSerializer):
 
 
 class ShelfSerializer(serializers.ModelSerializer):
+    warehouse_name = serializers.CharField(source='warehouse.name', read_only=True)
+    warehouse = serializers.PrimaryKeyRelatedField(
+        queryset=Warehouse.objects.all(),
+        write_only=True
+    )
+    user = serializers.PrimaryKeyRelatedField(
+        read_only=True
+    )
+
     class Meta:
         model = Shelf
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'warehouse', 'warehouse_name', 'user']
 
 
 class VendorSerializer(serializers.ModelSerializer):

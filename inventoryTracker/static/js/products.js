@@ -2,6 +2,8 @@ const csrftoken = document.getElementById('csrftoken').value;
 const API_URL = 'http://127.0.0.1:8000/api/products/';
 
 let isEditMode = false;
+let categories = [];
+
 
 async function loadSelectOptions(apiUrl, selectId) {
     const response = await fetch(apiUrl);
@@ -71,7 +73,6 @@ closeDetailsBtn.addEventListener('click', function () {
     productDetails.style.display = 'none'
 })
 
-
 function getSelectedValues(selectId) {
     const selected = [];
     const options = document.getElementById(selectId).selectedOptions;
@@ -80,7 +81,6 @@ function getSelectedValues(selectId) {
     }
     return selected;
 }
-
 
 async function saveProduct() {
     const productId = document.getElementById('product-id').value;
@@ -204,7 +204,6 @@ function resetForm() {
     isEditMode = false;
 }
 
-
 async function loadProducts() {
     const response = await fetch(API_URL);
     const products = await response.json();
@@ -215,6 +214,11 @@ async function loadProducts() {
         const row = document.createElement('tr');
 
         row.innerHTML = `
+            <td>
+                <input type="checkbox" class="form-check-input product-checkbox" 
+                       data-product-id="${product.id}"
+                       onchange="toggleProductSelection('${product.id}', this)">
+            </td>
             <td>${product.name}</td>
             <td>${product.sku}</td>
             <td>${product.model || ''}</td>
@@ -230,7 +234,7 @@ async function loadProducts() {
                 </button>
             </td>
             <td>    
-                <button class="btn btn-sm btn-danger" id="delete-btn" onclick="deleteProduct('${product.id}')">
+                <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteProduct('${product.id}')">
                     Delete
                 </button>
             </td>
@@ -239,6 +243,10 @@ async function loadProducts() {
         row.onclick = () => loadProductDetails(product.id);
         tableBody.appendChild(row);
     });
+
+    // Reset selected products
+    selectedProductIds = new Set();
+    document.getElementById('select-all').checked = false;
 }
 
 async function editProduct(id) {
@@ -287,3 +295,206 @@ async function deleteProduct(productId) {
 
 }
 
+
+// bulk options
+let selectedProductIds = new Set();
+
+// Toggle product selection
+function toggleProductSelection(productId, checkbox) {
+    if (checkbox.checked) {
+        selectedProductIds.add(productId);
+    } else {
+        selectedProductIds.delete(productId);
+    }
+    updateSelectAllCheckbox();
+}
+
+// Select/Deselect all products
+function toggleSelectAll(selectAllCheckbox) {
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+        const productId = checkbox.dataset.productId;
+        if (selectAllCheckbox.checked) {
+            selectedProductIds.add(productId);
+        } else {
+            selectedProductIds.delete(productId);
+        }
+    });
+}
+
+// Update select all checkbox state
+function updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.product-checkbox');
+    selectAllCheckbox.checked = checkboxes.length > 0 &&
+                               selectedProductIds.size === checkboxes.length;
+}
+
+// Bulk assign to category
+async function bulkAssignCategory(productIds, categoryId) {
+    try {
+        const response = await fetch(`${API_URL}bulk_assign_category/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds,
+                category_id: categoryId
+            })
+        });
+
+        if (response.ok) {
+            alert('Category assigned successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error assigning category:', error);
+        alert('Error assigning category');
+    }
+}
+
+// Bulk remove from category
+async function bulkRemoveCategory(productIds) {
+    try {
+        const response = await fetch(`${API_URL}bulk_remove_category/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds
+            })
+        });
+
+        if (response.ok) {
+            alert('Category removed successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error removing category:', error);
+        alert('Error removing category');
+    }
+}
+
+// Bulk delete products
+async function bulkDeleteProducts(productIds) {
+    try {
+        const response = await fetch(`${API_URL}bulk_delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds
+            })
+        });
+
+        if (response.ok) {
+            alert('Products deleted successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error deleting products:', error);
+        alert('Error deleting products');
+    }
+}
+
+async function loadCategoriesForBulk() {
+    try {
+        const response = await fetch('http://127.0.0.1:8000/api/categories/');
+        categories = await response.json();
+        const bulkCategorySelect = document.getElementById('bulk-category');
+
+        // Clear existing options except the first one
+        while (bulkCategorySelect.options.length > 1) {
+            bulkCategorySelect.remove(1);
+        }
+
+        // Add categories to bulk select
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            bulkCategorySelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        alert('Error loading categories');
+    }
+}
+
+async function applyBulkAction() {
+    const action = document.getElementById('bulk-action').value;
+    const productIds = Array.from(selectedProductIds);
+
+    if (productIds.length === 0) {
+        alert('Please select at least one product');
+        return;
+    }
+
+    if (!action) {
+        alert('Please select an action');
+        return;
+    }
+
+    const bulkCategorySelect = document.getElementById('bulk-category');
+
+    switch (action) {
+        case 'assign-category':
+            // Show category dropdown
+            bulkCategorySelect.style.display = 'inline-block';
+
+            // Wait for user selection (you might want to use a modal instead)
+            const assignConfirmed = confirm(`Assign ${productIds.length} selected products to a category?`);
+            if (assignConfirmed) {
+                if (bulkCategorySelect.value) {
+                    await bulkAssignCategory(productIds, bulkCategorySelect.value);
+                } else {
+                    alert('Please select a category first');
+                }
+            }
+            // Hide dropdown after operation
+            bulkCategorySelect.style.display = 'none';
+            break;
+
+        case 'remove-category':
+            if (confirm(`Remove category from ${productIds.length} selected products?`)) {
+                await bulkRemoveCategory(productIds);
+            }
+            break;
+
+        case 'delete':
+            if (confirm(`Are you sure you want to delete ${productIds.length} selected products?`)) {
+                await bulkDeleteProducts(productIds);
+            }
+            break;
+    }
+
+    // Reset selections
+    document.getElementById('bulk-action').value = '';
+    bulkCategorySelect.value = '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadProducts();
+    loadCategoriesForBulk();  // Load categories for bulk operations
+
+    document.getElementById('bulk-action').addEventListener('change', function() {
+        const bulkCategorySelect = document.getElementById('bulk-category');
+        bulkCategorySelect.style.display = (this.value === 'assign-category') ? 'inline-block' : 'none';
+    });
+});

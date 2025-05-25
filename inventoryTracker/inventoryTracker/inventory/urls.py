@@ -15,11 +15,11 @@ router.register(r'products', ProductViewSet, basename='product')
 urlpatterns = [
     path('api/', include(router.urls)),
     path('', index, name='index'),
-    path('products/', products_view, name='products_view'),
-    path('warehouse/', warehouse_view, name='warehouse_view'),
-    path('shelves/', shelves_view, name='shelves_view'),
-    path('vendors/', vendors_view, name='vendors_view'),
-    path('manufacturers/', manufacturer_view, name='manufacturers_view'),
-    path('categories/', category_view, name='categories_view'),
+    path('products/', products_view, name='products'),
+    path('warehouse/', warehouse_view, name='warehouses'),
+    path('shelves/', shelves_view, name='shelves'),
+    path('vendors/', vendors_view, name='vendors'),
+    path('manufacturers/', manufacturer_view, name='manufacturers'),
+    path('categories/', category_view, name='categories'),
 ]
 

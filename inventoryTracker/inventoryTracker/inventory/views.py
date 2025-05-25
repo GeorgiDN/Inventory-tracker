@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets, serializers
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor
 from inventoryTracker.inventory.serializers import ProductSerializer, CategorySerializer, ManufacturerSerializer, \
@@ -133,3 +135,30 @@ class ProductViewSet(viewsets.ModelViewSet):
                 product.vendor.set(vendor_ids)
             except (ValueError, TypeError) as e:
                 raise serializers.ValidationError({'vendor': 'Invalid vendor IDs'})
+
+    @action(detail=False, methods=['post'])
+    def bulk_assign_category(self, request):
+        product_ids = request.data.get('product_ids', [])
+        category_id = request.data.get('category_id')
+
+        if not product_ids or not category_id:
+            return Response({'error': 'product_ids and category_id are required'}, status=400)
+
+        try:
+            category = Category.objects.get(id=category_id, user=request.user)
+            products = Product.objects.filter(id__in=product_ids, user=request.user)
+            updated_count = products.update(category=category)
+            return Response({'success': f'Updated {updated_count} products'})
+        except Category.DoesNotExist:
+            return Response({'error': 'Category not found or not owned by user'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def bulk_remove_category(self, request):
+        product_ids = request.data.get('product_ids', [])
+
+        if not product_ids:
+            return Response({'error': 'product_ids are required'}, status=400)
+
+        products = Product.objects.filter(id__in=product_ids, user=request.user)
+        updated_count = products.update(category=None)
+        return Response({'success': f'Removed category from {updated_count} products'})

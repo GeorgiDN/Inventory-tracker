@@ -143,6 +143,17 @@ button:hover {
     cursor: pointer;
 }
 
+.bulk-action-container {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+#bulk-category {
+    transition: all 0.3s ease;
+}
+
 /*.table-hover tbody tr td:not(:last-child):not(:nth-last-child(2)) {*/
 /*    cursor: pointer;*/
 /*}*/

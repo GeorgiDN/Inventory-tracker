@@ -154,6 +154,12 @@ button:hover {
     transition: all 0.3s ease;
 }
 
+@media (max-width: 400px) {
+    td, tr, tbody, th, table {
+        font-size: 14px !important;
+    }
+}
+
 /*.table-hover tbody tr td:not(:last-child):not(:nth-last-child(2)) {*/
 /*    cursor: pointer;*/
 /*}*/

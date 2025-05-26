@@ -326,7 +326,7 @@ function updateSelectAllCheckbox() {
     const selectAllCheckbox = document.getElementById('select-all');
     const checkboxes = document.querySelectorAll('.product-checkbox');
     selectAllCheckbox.checked = checkboxes.length > 0 &&
-                               selectedProductIds.size === checkboxes.length;
+        selectedProductIds.size === checkboxes.length;
 }
 
 // Bulk assign to category
@@ -487,11 +487,11 @@ async function applyBulkAction() {
     bulkCategorySelect.value = '';
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadProducts();
     loadCategoriesForBulk();  // Load categories for bulk operations
 
-    document.getElementById('bulk-action').addEventListener('change', function() {
+    document.getElementById('bulk-action').addEventListener('change', function () {
         const bulkCategorySelect = document.getElementById('bulk-category');
         bulkCategorySelect.style.display = (this.value === 'assign-category') ? 'inline-block' : 'none';
     });

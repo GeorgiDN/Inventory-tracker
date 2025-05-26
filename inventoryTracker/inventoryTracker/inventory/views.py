@@ -4,37 +4,46 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from inventoryTracker import settings
 from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor
 from inventoryTracker.inventory.serializers import ProductSerializer, CategorySerializer, ManufacturerSerializer, \
     WareHouseSerializer, ShelfSerializer, VendorSerializer
 
 
 def index(request):
-    return render(request, 'index.html')
+    return render(request, 'index.html', {
+        'api_url_base': settings.API_BASE_URL
+    })
 
 
 def products_view(request):
-    return render(request, 'products.html')
+    context = {'api_url_base': settings.API_BASE_URL}
+    return render(request, 'products.html', context)
 
 
 def warehouse_view(request):
-    return render(request, 'warehouses.html')
+    context = {'api_url_base': settings.API_BASE_URL}
+    return render(request, 'warehouses.html', context)
 
 
 def shelves_view(request):
-    return render(request, 'shelf.html')
+    context = {'api_url_base': settings.API_BASE_URL}
+    return render(request, 'shelf.html', context)
 
 
 def vendors_view(request):
-    return render(request, 'vendors.html')
+    context = {'api_url_base': settings.API_BASE_URL}
+    return render(request, 'vendors.html', context)
 
 
 def manufacturer_view(request):
-    return render(request, 'manufacturers.html')
+    context = {'api_url_base': settings.API_BASE_URL}
+    return render(request, 'manufacturers.html', context)
 
 
 def category_view(request):
-    return render(request, 'categories.html')
+    context = {'api_url_base': settings.API_BASE_URL}
+    return render(request, 'categories.html', context)
 
 
 class WareHouseViewSet(viewsets.ModelViewSet):
@@ -95,7 +104,6 @@ class ManufacturerViewSet(viewsets.ModelViewSet):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
     serializer_class = CategorySerializer
 
     def get_queryset(self):
@@ -162,3 +170,15 @@ class ProductViewSet(viewsets.ModelViewSet):
         products = Product.objects.filter(id__in=product_ids, user=request.user)
         updated_count = products.update(category=None)
         return Response({'success': f'Removed category from {updated_count} products'})
+
+    @action(detail=False, methods=['post'])
+    def bulk_delete(self, request):
+        product_ids = request.data.get('product_ids', [])
+
+        if not product_ids:
+            return Response({'error': 'product_ids are required'}, status=400)
+
+        products = Product.objects.filter(id__in=product_ids, user=request.user)
+        count = products.count()
+        products.delete()
+        return Response({'success': f'Deleted {count} products'})

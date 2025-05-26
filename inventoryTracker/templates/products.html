@@ -5,7 +5,7 @@
     <div class="container-fluid mt-4">
         <div class="row">
             <button id="toggle-form" class="btn btn-primary mb-3">Show/Hide Product Form</button>
-            
+
             <!-- -->
             <div class="row mb-3">
                 <div class="col-md-12">
@@ -29,7 +29,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="product-form-wrapper" style="display: none">
                 <div class="product-form-container">
 
@@ -139,6 +139,12 @@
 
         </div>
     </div>
+
+    <script>
+        window.env = {
+            API_BASE_URL: "{{ api_url_base }}"
+        };
+    </script>
 
     <script src="{% static 'js/products.js' %}"></script>
 

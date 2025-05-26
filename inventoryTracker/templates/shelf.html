@@ -37,15 +37,24 @@
             <tbody></tbody>
         </table>
     </div>
+    
+    <script>
+        window.env = {
+            API_BASE_URL: "{{ api_url_base }}"
+        };
+    </script>
+    
     <script>
         const csrftoken = document.getElementById('csrftoken').value;
-        const API_URL = 'http://127.0.0.1:8000/api/shelves/';
-
+        
+        const API_BASE_URL = window.env.API_BASE_URL;
+        const API_URL = `${API_BASE_URL}shelves/`;
+        
         document.addEventListener('DOMContentLoaded', loadShelves);
 
         async function loadWarehouseOptions() {
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/warehouses/');
+                const response = await fetch(`${API_BASE_URL}warehouses/`);
                 const warehouses = await response.json();
                 const select = document.getElementById('shelf-warehouse');
 

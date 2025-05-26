@@ -1,9 +1,11 @@
 const csrftoken = document.getElementById('csrftoken').value;
-const API_URL = 'http://127.0.0.1:8000/api/products/';
+
+const API_BASE_URL = window.env.API_BASE_URL;
+
+const API_URL = `${API_BASE_URL}products/`;
 
 let isEditMode = false;
 let categories = [];
-
 
 async function loadSelectOptions(apiUrl, selectId) {
     const response = await fetch(apiUrl);
@@ -18,11 +20,11 @@ async function loadSelectOptions(apiUrl, selectId) {
     });
 }
 
-loadSelectOptions('http://127.0.0.1:8000/api/warehouses/', 'warehouse');
-loadSelectOptions('http://127.0.0.1:8000/api/shelves/', 'shelf');
-loadSelectOptions('http://127.0.0.1:8000/api/vendors/', 'product-vendor');
-loadSelectOptions('http://127.0.0.1:8000/api/manufacturers/', 'product-manufacturer');
-loadSelectOptions('http://127.0.0.1:8000/api/categories/', 'product-category');
+loadSelectOptions(`${API_BASE_URL}warehouses/`, 'warehouse');
+loadSelectOptions(`${API_BASE_URL}shelves/`, 'shelf');
+loadSelectOptions(`${API_BASE_URL}vendors/`, 'product-vendor');
+loadSelectOptions(`${API_BASE_URL}manufacturers/`, 'product-manufacturer');
+loadSelectOptions(`${API_BASE_URL}categories/`, 'product-category');
 
 loadProducts();
 
@@ -295,11 +297,8 @@ async function deleteProduct(productId) {
 
 }
 
-
-// bulk options
 let selectedProductIds = new Set();
 
-// Toggle product selection
 function toggleProductSelection(productId, checkbox) {
     if (checkbox.checked) {
         selectedProductIds.add(productId);
@@ -323,7 +322,6 @@ function toggleSelectAll(selectAllCheckbox) {
     });
 }
 
-// Update select all checkbox state
 function updateSelectAllCheckbox() {
     const selectAllCheckbox = document.getElementById('select-all');
     const checkboxes = document.querySelectorAll('.product-checkbox');
@@ -415,7 +413,7 @@ async function bulkDeleteProducts(productIds) {
 
 async function loadCategoriesForBulk() {
     try {
-        const response = await fetch('http://127.0.0.1:8000/api/categories/');
+        const response = await fetch(`${API_BASE_URL}categories/`);
         categories = await response.json();
         const bulkCategorySelect = document.getElementById('bulk-category');
 

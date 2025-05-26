@@ -35,10 +35,19 @@
             <tbody></tbody>
         </table>
     </div>
+    
+    <script>
+        window.env = {
+            API_BASE_URL: "{{ api_url_base }}"
+        };
+    </script>
+    
     <script>
         const csrftoken = document.getElementById('csrftoken').value;
-        const API_URL = 'http://127.0.0.1:8000/api/manufacturers/';
-
+        
+        const API_BASE_URL = window.env.API_BASE_URL;
+        const API_URL = `${API_BASE_URL}manufacturers/`;
+        
         document.addEventListener('DOMContentLoaded', loadManufacturers);
 
         async function saveManufacturer() {

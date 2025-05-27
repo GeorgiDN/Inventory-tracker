@@ -384,33 +384,6 @@ async function bulkRemoveCategory(productIds) {
     }
 }
 
-// Bulk delete products
-async function bulkDeleteProducts(productIds) {
-    try {
-        const response = await fetch(`${API_URL}bulk_delete/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                product_ids: productIds
-            })
-        });
-
-        if (response.ok) {
-            alert('Products deleted successfully');
-            loadProducts();
-        } else {
-            const error = await response.json();
-            alert('Error: ' + JSON.stringify(error));
-        }
-    } catch (error) {
-        console.error('Error deleting products:', error);
-        alert('Error deleting products');
-    }
-}
-
 async function loadCategoriesForBulk() {
     try {
         const response = await fetch(`${API_BASE_URL}categories/`);
@@ -450,6 +423,7 @@ async function applyBulkAction() {
     }
 
     const bulkCategorySelect = document.getElementById('bulk-category');
+    const bulkWarehouseSelect = document.getElementById('bulk-warehouse');
 
     switch (action) {
         case 'assign-category':
@@ -469,9 +443,32 @@ async function applyBulkAction() {
             bulkCategorySelect.style.display = 'none';
             break;
 
+
+        case 'assign-warehouse':
+            bulkWarehouseSelect.style.display = 'inline-block';
+
+            const assignWarehouseConfirmed = confirm(`Assign ${productIds.length} selected products to a warehouse?`);
+            if (assignWarehouseConfirmed) {
+                if (bulkWarehouseSelect.value) {
+                    await bulkAssignWarehouse(productIds, bulkWarehouseSelect.value);
+                } else {
+                    alert('Please select a warehouse first');
+                }
+            }
+            // Hide dropdown after operation
+            bulkWarehouseSelect.style.display = 'none';
+            break;
+
+
         case 'remove-category':
             if (confirm(`Remove category from ${productIds.length} selected products?`)) {
                 await bulkRemoveCategory(productIds);
+            }
+            break;
+
+        case 'remove-warehouse':
+            if (confirm(`Remove warehouse from ${productIds.length} selected products?`)) {
+                await bulkRemoveWarehouse(productIds);
             }
             break;
 
@@ -485,14 +482,133 @@ async function applyBulkAction() {
     // Reset selections
     document.getElementById('bulk-action').value = '';
     bulkCategorySelect.value = '';
+
+    document.getElementById('bulk-action').value = '';
+    bulkWarehouseSelect.value = '';
+
+
 }
+
+// Bulk delete products
+async function bulkDeleteProducts(productIds) {
+    try {
+        const response = await fetch(`${API_URL}bulk_delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds
+            })
+        });
+
+        if (response.ok) {
+            alert('Products deleted successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error deleting products:', error);
+        alert('Error deleting products');
+    }
+}
+
+
+//---------------------------
+
+async function loadWarehouseForBulk() {
+    try {
+        const response = await fetch(`${API_BASE_URL}warehouses/`);
+        warehouses = await response.json();
+        const bulkWarehouseSelect = document.getElementById('bulk-warehouse');
+
+        // Clear existing options except the first one
+        while (bulkWarehouseSelect.options.length > 1) {
+            bulkWarehouseSelect.remove(1);
+        }
+
+        // Add categories to bulk select
+        warehouses.forEach(warehouse => {
+            const option = document.createElement('option');
+            option.value = warehouse.id;
+            option.textContent = warehouse.name;
+            bulkWarehouseSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading warehouses:', error);
+        alert('Error loading warehouses');
+    }
+}
+
+async function bulkAssignWarehouse(productIds, warehouseId) {
+    try {
+        const response = await fetch(`${API_URL}bulk_assign_warehouse/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds,
+                warehouse_id: warehouseId
+            })
+        });
+
+        if (response.ok) {
+            alert('Warehouse assigned successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error assigning warehouse:', error);
+        alert('Error assigning warehouse');
+    }
+}
+
+// Bulk remove from category
+async function bulkRemoveWarehouse(productIds) {
+    try {
+        const response = await fetch(`${API_URL}bulk_remove_warehouse/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds
+            })
+        });
+
+        if (response.ok) {
+            alert('Warehouse removed successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error removing warehouse:', error);
+        alert('Error removing warehouse');
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', function () {
     loadProducts();
-    loadCategoriesForBulk();  // Load categories for bulk operations
+    loadCategoriesForBulk();
+    loadWarehouseForBulk();
 
     document.getElementById('bulk-action').addEventListener('change', function () {
         const bulkCategorySelect = document.getElementById('bulk-category');
         bulkCategorySelect.style.display = (this.value === 'assign-category') ? 'inline-block' : 'none';
+
+        const bulkWarehouseSelect = document.getElementById('bulk-warehouse');
+        bulkWarehouseSelect.style.display = (this.value === 'assign-warehouse') ? 'inline-block' : 'none';
+
     });
 });

@@ -18,12 +18,18 @@
                             <option value="">-- Bulk Actions --</option>
                             <option value="assign-category">Assign to Category</option>
                             <option value="remove-category">Remove from Category</option>
+                            <option value="assign-warehouse">Assign to Warehouse</option>
+                            <option value="remove-warehouse">Remove from Warehouse</option>
                             <option value="delete">Delete</option>
                         </select>
                         <select id="bulk-category" class="form-select me-2" style="width: 200px; display: none;">
                             <option value="">-- Select Category --</option>
-                            <!-- Categories will be loaded here dynamically -->
                         </select>
+                        
+                        <select id="bulk-warehouse" class="form-select me-2" style="width: 200px; display: none;">
+                            <option value="">-- Select Warehouse --</option>
+                        </select>
+                        
                         <button onclick="applyBulkAction()" class="btn btn-primary">Apply</button>
                     </div>
                 </div>

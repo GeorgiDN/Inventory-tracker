@@ -9,6 +9,8 @@ from inventoryTracker.inventory.models import Product, Category, Manufacturer, W
 from inventoryTracker.inventory.serializers import ProductSerializer, CategorySerializer, ManufacturerSerializer, \
     WareHouseSerializer, ShelfSerializer, VendorSerializer
 
+from django.contrib.auth.decorators import login_required
+
 
 def index(request):
     return render(request, 'index.html', {
@@ -16,31 +18,32 @@ def index(request):
     })
 
 
+@login_required
 def products_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'products.html', context)
 
-
+@login_required
 def warehouse_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'warehouses.html', context)
 
-
+@login_required
 def shelves_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'shelf.html', context)
 
-
+@login_required
 def vendors_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'vendors.html', context)
 
-
+@login_required
 def manufacturer_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'manufacturers.html', context)
 
-
+@login_required
 def category_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'categories.html', context)
@@ -182,3 +185,30 @@ class ProductViewSet(viewsets.ModelViewSet):
         count = products.count()
         products.delete()
         return Response({'success': f'Deleted {count} products'})
+
+    @action(detail=False, methods=['post'])
+    def bulk_assign_warehouse(self, request):
+        product_ids = request.data.get('product_ids', [])
+        warehouse_id = request.data.get('warehouse_id')
+
+        if not product_ids or not warehouse_id:
+            return Response({'error': 'product_ids and warehouse_id are required'}, status=400)
+
+        try:
+            warehouse = Warehouse.objects.get(id=warehouse_id, user=request.user)
+            products = Product.objects.filter(id__in=product_ids, user=request.user)
+            updated_count = products.update(warehouse=warehouse)
+            return Response({'success': f'Updated {updated_count} products'})
+        except Warehouse.DoesNotExist:
+            return Response({'error': 'Warehouse not found or not owned by user'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def bulk_remove_warehouse(self, request):
+        product_ids = request.data.get('product_ids', [])
+
+        if not product_ids:
+            return Response({'error': 'product_ids are required'}, status=400)
+
+        products = Product.objects.filter(id__in=product_ids, user=request.user)
+        updated_count = products.update(warehouse=None)
+        return Response({'success': f'Removed category from {updated_count} products'})

@@ -1,11 +1,14 @@
-from django.urls import path
+from django.urls import path, include
 from inventoryTracker.accounts import views as accounts_views
 from django.contrib.auth import views as auth_views
 
 
 urlpatterns = [
     path('register/', accounts_views.register, name='register'),
-    path('profile/', accounts_views.profile, name='profile'),
+    path('profile/', accounts_views.ProfileView.as_view(), name='profile'),
+    path('profile/<int:pk>/', include([
+        path('delete/', accounts_views.ProfileDeleteView.as_view(), name='profile-delete'),
+    ])),
     path('change-password/', accounts_views.update_password, name='password_change'),
 
     path('logout/', auth_views.LogoutView.as_view(template_name='accounts/logout.html'), name='logout'),

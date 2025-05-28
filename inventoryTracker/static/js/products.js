@@ -444,7 +444,6 @@ async function applyBulkAction() {
             bulkCategorySelect.style.display = 'none';
             break;
 
-
         case 'assign-warehouse':
             bulkWarehouseSelect.style.display = 'inline-block';
 
@@ -475,7 +474,6 @@ async function applyBulkAction() {
             bulkShelfSelect.style.display = 'none';
             break;
 
-
         case 'remove-category':
             if (confirm(`Remove category from ${productIds.length} selected products?`)) {
                 await bulkRemoveCategory(productIds);
@@ -485,6 +483,12 @@ async function applyBulkAction() {
         case 'remove-warehouse':
             if (confirm(`Remove warehouse from ${productIds.length} selected products?`)) {
                 await bulkRemoveWarehouse(productIds);
+            }
+            break;
+
+        case 'remove-shelf':
+            if (confirm(`Remove shelf from ${productIds.length} selected products?`)) {
+                await bulkRemoveShelf(productIds);
             }
             break;
 
@@ -586,9 +590,9 @@ async function bulkAssignWarehouse(productIds, warehouseId) {
 }
 
 
-async function bulkRemoveWarehouse(productIds) {
+async function bulkRemoveShelf(productIds) {
     try {
-        const response = await fetch(`${API_URL}bulk_remove_warehouse/`, {
+        const response = await fetch(`${API_URL}bulk_remove_shelf/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -600,15 +604,15 @@ async function bulkRemoveWarehouse(productIds) {
         });
 
         if (response.ok) {
-            alert('Warehouse removed successfully');
+            alert('Shelf removed successfully');
             loadProducts();
         } else {
             const error = await response.json();
             alert('Error: ' + JSON.stringify(error));
         }
     } catch (error) {
-        console.error('Error removing warehouse:', error);
-        alert('Error removing warehouse');
+        console.error('Error removing shelf:', error);
+        alert('Error removing shelf');
     }
 }
 
@@ -661,6 +665,32 @@ async function bulkAssignShelf(productIds, shelfId) {
     } catch (error) {
         console.error('Error assigning shelf:', error);
         alert('Error assigning shelf');
+    }
+}
+
+async function bulkRemoveWarehouse(productIds) {
+    try {
+        const response = await fetch(`${API_URL}bulk_remove_warehouse/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds
+            })
+        });
+
+        if (response.ok) {
+            alert('Warehouse removed successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error removing warehouse:', error);
+        alert('Error removing warehouse');
     }
 }
 

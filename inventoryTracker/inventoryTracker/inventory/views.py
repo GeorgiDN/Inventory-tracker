@@ -23,25 +23,30 @@ def products_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'products.html', context)
 
+
 @login_required
 def warehouse_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'warehouses.html', context)
+
 
 @login_required
 def shelves_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'shelf.html', context)
 
+
 @login_required
 def vendors_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'vendors.html', context)
 
+
 @login_required
 def manufacturer_view(request):
     context = {'api_url_base': settings.API_BASE_URL}
     return render(request, 'manufacturers.html', context)
+
 
 @login_required
 def category_view(request):
@@ -211,7 +216,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         products = Product.objects.filter(id__in=product_ids, user=request.user)
         updated_count = products.update(warehouse=None)
-        return Response({'success': f'Removed category from {updated_count} products'})
+        return Response({'success': f'Removed warehouse from {updated_count} products'})
 
     @action(detail=False, methods=['post'])
     def bulk_assign_shelf(self, request):
@@ -228,3 +233,14 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'success': f'Updated {updated_count} products'})
         except Shelf.DoesNotExist:
             return Response({'error': 'Shelf not found or not owned by user'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def bulk_remove_shelf(self, request):
+        product_ids = request.data.get('product_ids', [])
+
+        if not product_ids:
+            return Response({'error': 'product_ids are required'}, status=400)
+
+        products = Product.objects.filter(id__in=product_ids, user=request.user)
+        updated_count = products.update(shelf=None)
+        return Response({'success': f'Removed shelf from {updated_count} products'})

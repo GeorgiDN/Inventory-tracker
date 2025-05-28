@@ -212,3 +212,19 @@ class ProductViewSet(viewsets.ModelViewSet):
         products = Product.objects.filter(id__in=product_ids, user=request.user)
         updated_count = products.update(warehouse=None)
         return Response({'success': f'Removed category from {updated_count} products'})
+
+    @action(detail=False, methods=['post'])
+    def bulk_assign_shelf(self, request):
+        product_ids = request.data.get('product_ids', [])
+        shelf_id = request.data.get('shelf_id')
+
+        if not product_ids or not shelf_id:
+            return Response({'error': 'product_ids and shelf_id are required'}, status=400)
+
+        try:
+            shelf = Shelf.objects.get(id=shelf_id, user=request.user)
+            products = Product.objects.filter(id__in=product_ids, user=request.user)
+            updated_count = products.update(shelf=shelf)
+            return Response({'success': f'Updated {updated_count} products'})
+        except Shelf.DoesNotExist:
+            return Response({'error': 'Shelf not found or not owned by user'}, status=404)

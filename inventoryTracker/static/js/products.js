@@ -424,6 +424,7 @@ async function applyBulkAction() {
 
     const bulkCategorySelect = document.getElementById('bulk-category');
     const bulkWarehouseSelect = document.getElementById('bulk-warehouse');
+    const bulkShelfSelect = document.getElementById('bulk-shelf');
 
     switch (action) {
         case 'assign-category':
@@ -459,6 +460,21 @@ async function applyBulkAction() {
             bulkWarehouseSelect.style.display = 'none';
             break;
 
+        case 'assign-shelf':
+            bulkShelfSelect.style.display = 'inline-block';
+
+            const assignShelfConfirmed = confirm(`Assign ${productIds.length} selected products to a shelf?`);
+            if (assignShelfConfirmed) {
+                if (bulkShelfSelect.value) {
+                    await bulkAssignShelf(productIds, bulkShelfSelect.value);
+                } else {
+                    alert('Please select a shelf first');
+                }
+            }
+
+            bulkShelfSelect.style.display = 'none';
+            break;
+
 
         case 'remove-category':
             if (confirm(`Remove category from ${productIds.length} selected products?`)) {
@@ -482,9 +498,8 @@ async function applyBulkAction() {
     // Reset selections
     document.getElementById('bulk-action').value = '';
     bulkCategorySelect.value = '';
-
-    document.getElementById('bulk-action').value = '';
     bulkWarehouseSelect.value = '';
+    bulkShelfSelect.value = '';
 
 
 }
@@ -570,7 +585,7 @@ async function bulkAssignWarehouse(productIds, warehouseId) {
     }
 }
 
-// Bulk remove from category
+
 async function bulkRemoveWarehouse(productIds) {
     try {
         const response = await fetch(`${API_URL}bulk_remove_warehouse/`, {
@@ -598,10 +613,62 @@ async function bulkRemoveWarehouse(productIds) {
 }
 
 
+async function loadShelvesForBulk() {
+    try {
+        const response = await fetch(`${API_BASE_URL}shelves/`);
+        let shelves = await response.json();
+        const bulkShelfSelect = document.getElementById('bulk-shelf');
+
+        // Clear existing options except the first one
+        while (bulkShelfSelect.options.length > 1) {
+            bulkShelfSelect.remove(1);
+        }
+
+
+        shelves.forEach(shelf => {
+            const option = document.createElement('option');
+            option.value = shelf.id;
+            option.textContent = shelf.name;
+            bulkShelfSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading shelves:', error);
+        alert('Error loading shelves');
+    }
+}
+
+async function bulkAssignShelf(productIds, shelfId) {
+    try {
+        const response = await fetch(`${API_URL}bulk_assign_shelf/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds,
+                shelf_id: shelfId
+            })
+        });
+
+        if (response.ok) {
+            alert('Shelf assigned successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error assigning shelf:', error);
+        alert('Error assigning shelf');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     loadProducts();
     loadCategoriesForBulk();
     loadWarehouseForBulk();
+    loadShelvesForBulk();
 
     document.getElementById('bulk-action').addEventListener('change', function () {
         const bulkCategorySelect = document.getElementById('bulk-category');
@@ -609,6 +676,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const bulkWarehouseSelect = document.getElementById('bulk-warehouse');
         bulkWarehouseSelect.style.display = (this.value === 'assign-warehouse') ? 'inline-block' : 'none';
+
+        const bulkShelfSelect = document.getElementById('bulk-shelf');
+        bulkShelfSelect.style.display = (this.value === 'assign-shelf') ? 'inline-block' : 'none';
 
     });
 });

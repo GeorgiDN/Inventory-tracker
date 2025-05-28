@@ -20,6 +20,7 @@
                             <option value="remove-category">Remove from Category</option>
                             <option value="assign-warehouse">Assign to Warehouse</option>
                             <option value="remove-warehouse">Remove from Warehouse</option>
+                            <option value="assign-shelf">Assign to Shelf</option>
                             <option value="delete">Delete</option>
                         </select>
                         <select id="bulk-category" class="form-select me-2" style="width: 200px; display: none;">
@@ -28,6 +29,10 @@
                         
                         <select id="bulk-warehouse" class="form-select me-2" style="width: 200px; display: none;">
                             <option value="">-- Select Warehouse --</option>
+                        </select>
+                        
+                        <select id="bulk-shelf" class="form-select me-2" style="width: 200px; display: none;">
+                            <option value="">-- Select Shelf --</option>
                         </select>
                         
                         <button onclick="applyBulkAction()" class="btn btn-primary mb-3">Apply</button>

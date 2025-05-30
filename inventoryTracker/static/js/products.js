@@ -425,6 +425,7 @@ async function applyBulkAction() {
     const bulkCategorySelect = document.getElementById('bulk-category');
     const bulkWarehouseSelect = document.getElementById('bulk-warehouse');
     const bulkShelfSelect = document.getElementById('bulk-shelf');
+    const bulkManufacturerSelect = document.getElementById('bulk-manufacturer');
 
     switch (action) {
         case 'assign-category':
@@ -474,6 +475,21 @@ async function applyBulkAction() {
             bulkShelfSelect.style.display = 'none';
             break;
 
+        case 'assign-manufacturer':
+            bulkManufacturerSelect.style.display = 'inline-block';
+
+            const assignManufacturerConfirmed = confirm(`Assign ${productIds.length} selected products to a manufacturer?`);
+            if (assignManufacturerConfirmed) {
+                if (bulkManufacturerSelect.value) {
+                    await bulkAssignManufacturer(productIds, bulkManufacturerSelect.value);
+                } else {
+                    alert('Please select a manufacturer first');
+                }
+            }
+
+            bulkManufacturerSelect.style.display = 'none';
+            break;
+
         case 'remove-category':
             if (confirm(`Remove category from ${productIds.length} selected products?`)) {
                 await bulkRemoveCategory(productIds);
@@ -492,6 +508,7 @@ async function applyBulkAction() {
             }
             break;
 
+
         case 'delete':
             if (confirm(`Are you sure you want to delete ${productIds.length} selected products?`)) {
                 await bulkDeleteProducts(productIds);
@@ -504,7 +521,7 @@ async function applyBulkAction() {
     bulkCategorySelect.value = '';
     bulkWarehouseSelect.value = '';
     bulkShelfSelect.value = '';
-
+    bulkManufacturerSelect.value = ''
 
 }
 
@@ -534,7 +551,6 @@ async function bulkDeleteProducts(productIds) {
         alert('Error deleting products');
     }
 }
-
 
 //---------------------------
 
@@ -589,7 +605,6 @@ async function bulkAssignWarehouse(productIds, warehouseId) {
     }
 }
 
-
 async function bulkRemoveShelf(productIds) {
     try {
         const response = await fetch(`${API_URL}bulk_remove_shelf/`, {
@@ -615,7 +630,6 @@ async function bulkRemoveShelf(productIds) {
         alert('Error removing shelf');
     }
 }
-
 
 async function loadShelvesForBulk() {
     try {
@@ -694,11 +708,62 @@ async function bulkRemoveWarehouse(productIds) {
     }
 }
 
+async function loadManufacturersForBulk() {
+    try {
+        const response = await fetch(`${API_BASE_URL}manufacturers/`);
+        let manufacturers = await response.json();
+        const bulkManufacturerSelect = document.getElementById('bulk-manufacturer');
+
+        // Clear existing options except the first one
+        while (bulkManufacturerSelect.options.length > 1) {
+            bulkManufacturerSelect.remove(1);
+        }
+
+        manufacturers.forEach(manufacturer => {
+            const option = document.createElement('option');
+            option.value = manufacturer.id;
+            option.textContent = manufacturer.name;
+            bulkManufacturerSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading manufacturers:', error);
+        alert('Error loading manufacturers');
+    }
+}
+
+async function bulkAssignManufacturer(productIds, manufacturerId) {
+    try {
+        const response = await fetch(`${API_URL}bulk_assign_manufacturer/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds,
+                manufacturer_id: manufacturerId
+            })
+        });
+
+        if (response.ok) {
+            alert('Manufacturer assigned successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error assigning manufacturer:', error);
+        alert('Error assigning manufacturer');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     loadProducts();
     loadCategoriesForBulk();
     loadWarehouseForBulk();
     loadShelvesForBulk();
+    loadManufacturersForBulk();
 
     document.getElementById('bulk-action').addEventListener('change', function () {
         const bulkCategorySelect = document.getElementById('bulk-category');
@@ -709,6 +774,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const bulkShelfSelect = document.getElementById('bulk-shelf');
         bulkShelfSelect.style.display = (this.value === 'assign-shelf') ? 'inline-block' : 'none';
+
+        const bulkManufacturerSelect = document.getElementById('bulk-manufacturer');
+        bulkManufacturerSelect.style.display = (this.value === 'assign-manufacturer') ? 'inline-block' : 'none';
 
     });
 });

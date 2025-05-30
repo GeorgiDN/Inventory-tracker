@@ -101,8 +101,9 @@ class VendorViewSet(viewsets.ModelViewSet):
 
 
 class ManufacturerViewSet(viewsets.ModelViewSet):
-    queryset = Manufacturer.objects.all()
+
     serializer_class = ManufacturerSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Manufacturer.objects.filter(user=self.request.user)
@@ -244,3 +245,19 @@ class ProductViewSet(viewsets.ModelViewSet):
         products = Product.objects.filter(id__in=product_ids, user=request.user)
         updated_count = products.update(shelf=None)
         return Response({'success': f'Removed shelf from {updated_count} products'})
+
+    @action(detail=False, methods=['post'])
+    def bulk_assign_manufacturer(self, request):
+        product_ids = request.data.get('product_ids', [])
+        manufacturer_id = request.data.get('manufacturer_id')
+
+        if not product_ids or not manufacturer_id:
+            return Response({'error': 'product_ids and manufacturer_id are required'}, status=400)
+
+        try:
+            manufacturer = Manufacturer.objects.get(id=manufacturer_id, user=request.user)
+            products = Product.objects.filter(id__in=product_ids, user=request.user)
+            updated_count = products.update(manufacturer=manufacturer)
+            return Response({'success': f'Updated {updated_count} products'})
+        except Manufacturer.DoesNotExist:
+            return Response({'error': 'Manufacturer not found or not owned by user'}, status=404)

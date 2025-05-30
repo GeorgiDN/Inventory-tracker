@@ -508,6 +508,11 @@ async function applyBulkAction() {
             }
             break;
 
+        case 'remove-manufacturer':
+            if (confirm(`Remove manufacturer from ${productIds.length} selected products?`)) {
+                await bulkRemoveManufacturer(productIds);
+            }
+            break;
 
         case 'delete':
             if (confirm(`Are you sure you want to delete ${productIds.length} selected products?`)) {
@@ -755,6 +760,32 @@ async function bulkAssignManufacturer(productIds, manufacturerId) {
     } catch (error) {
         console.error('Error assigning manufacturer:', error);
         alert('Error assigning manufacturer');
+    }
+}
+
+async function bulkRemoveManufacturer(productIds) {
+    try {
+        const response = await fetch(`${API_URL}bulk_remove_manufacturer/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds
+            })
+        });
+
+        if (response.ok) {
+            alert('Manufacturer removed successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error removing warehouse:', error);
+        alert('Error removing warehouse');
     }
 }
 

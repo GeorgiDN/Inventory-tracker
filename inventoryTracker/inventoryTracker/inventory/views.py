@@ -101,7 +101,6 @@ class VendorViewSet(viewsets.ModelViewSet):
 
 
 class ManufacturerViewSet(viewsets.ModelViewSet):
-
     serializer_class = ManufacturerSerializer
     permission_classes = [IsAuthenticated]
 
@@ -261,3 +260,14 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'success': f'Updated {updated_count} products'})
         except Manufacturer.DoesNotExist:
             return Response({'error': 'Manufacturer not found or not owned by user'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def bulk_remove_manufacturer(self, request):
+        product_ids = request.data.get('product_ids', [])
+
+        if not product_ids:
+            return Response({'error': 'product_ids are required'}, status=400)
+
+        products = Product.objects.filter(id__in=product_ids, user=request.user)
+        updated_count = products.update(manufacturer=None)
+        return Response({'success': f'Removed manufacturer from {updated_count} products'})

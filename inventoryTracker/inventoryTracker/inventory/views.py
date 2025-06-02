@@ -271,3 +271,41 @@ class ProductViewSet(viewsets.ModelViewSet):
         products = Product.objects.filter(id__in=product_ids, user=request.user)
         updated_count = products.update(manufacturer=None)
         return Response({'success': f'Removed manufacturer from {updated_count} products'})
+
+    @action(detail=False, methods=['post'])
+    def bulk_assign_vendor(self, request):
+        product_ids = request.data.get('product_ids', [])
+        vendor_id = request.data.get('vendor_id')
+
+        if not product_ids or not vendor_id:
+            return Response({'error': 'product_ids and vendor_id are required'}, status=400)
+
+        try:
+            products = Product.objects.filter(id__in=product_ids, user=request.user)
+            vendor = Vendor.objects.get(id=vendor_id, user=request.user)
+
+            for product in products:
+                product.vendor.add(vendor)
+
+            return Response({'success': f'Added vendor to {len(products)} products'})
+        except Vendor.DoesNotExist:
+            return Response({'error': 'Vendor not found or not owned by user'}, status=404)
+
+    @action(detail=False, methods=['post'])
+    def bulk_remove_vendor(self, request):
+        product_ids = request.data.get('product_ids', [])
+        vendor_id = request.data.get('vendor_id')
+
+        if not product_ids or not vendor_id:
+            return Response({'error': 'product_ids and vendor_id are required'}, status=400)
+
+        try:
+            products = Product.objects.filter(id__in=product_ids, user=request.user)
+            vendor = Vendor.objects.get(id=vendor_id, user=request.user)
+
+            for product in products:
+                product.vendor.remove(vendor)
+
+            return Response({'success': f'Removed vendor from {len(products)} products'})
+        except Vendor.DoesNotExist:
+            return Response({'error': 'Vendor not found or not owned by user'}, status=404)

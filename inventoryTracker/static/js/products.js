@@ -308,7 +308,6 @@ function toggleProductSelection(productId, checkbox) {
     updateSelectAllCheckbox();
 }
 
-// Select/Deselect all products
 function toggleSelectAll(selectAllCheckbox) {
     const checkboxes = document.querySelectorAll('.product-checkbox');
     checkboxes.forEach(checkbox => {
@@ -329,85 +328,6 @@ function updateSelectAllCheckbox() {
         selectedProductIds.size === checkboxes.length;
 }
 
-// Bulk assign to category
-async function bulkAssignCategory(productIds, categoryId) {
-    try {
-        const response = await fetch(`${API_URL}bulk_assign_category/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                product_ids: productIds,
-                category_id: categoryId
-            })
-        });
-
-        if (response.ok) {
-            alert('Category assigned successfully');
-            loadProducts();
-        } else {
-            const error = await response.json();
-            alert('Error: ' + JSON.stringify(error));
-        }
-    } catch (error) {
-        console.error('Error assigning category:', error);
-        alert('Error assigning category');
-    }
-}
-
-// Bulk remove from category
-async function bulkRemoveCategory(productIds) {
-    try {
-        const response = await fetch(`${API_URL}bulk_remove_category/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                product_ids: productIds
-            })
-        });
-
-        if (response.ok) {
-            alert('Category removed successfully');
-            loadProducts();
-        } else {
-            const error = await response.json();
-            alert('Error: ' + JSON.stringify(error));
-        }
-    } catch (error) {
-        console.error('Error removing category:', error);
-        alert('Error removing category');
-    }
-}
-
-async function loadCategoriesForBulk() {
-    try {
-        const response = await fetch(`${API_BASE_URL}categories/`);
-        categories = await response.json();
-        const bulkCategorySelect = document.getElementById('bulk-category');
-
-        // Clear existing options except the first one
-        while (bulkCategorySelect.options.length > 1) {
-            bulkCategorySelect.remove(1);
-        }
-
-        // Add categories to bulk select
-        categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.id;
-            option.textContent = category.name;
-            bulkCategorySelect.appendChild(option);
-        });
-    } catch (error) {
-        console.error('Error loading categories:', error);
-        alert('Error loading categories');
-    }
-}
-
 async function applyBulkAction() {
     const action = document.getElementById('bulk-action').value;
     const productIds = Array.from(selectedProductIds);
@@ -426,6 +346,7 @@ async function applyBulkAction() {
     const bulkWarehouseSelect = document.getElementById('bulk-warehouse');
     const bulkShelfSelect = document.getElementById('bulk-shelf');
     const bulkManufacturerSelect = document.getElementById('bulk-manufacturer');
+    const bulkVendorSelect = document.getElementById('bulk-vendor');
 
     switch (action) {
         case 'assign-category':
@@ -490,6 +411,20 @@ async function applyBulkAction() {
             bulkManufacturerSelect.style.display = 'none';
             break;
 
+        case 'assign-vendor':
+            bulkVendorSelect.style.display = 'inline-block';
+
+            const assignVendorConfirmed = confirm(`Add ${productIds.length} selected products to a vendor?`);
+            if (assignVendorConfirmed) {
+                if (bulkVendorSelect.value) {
+                    await bulkAssignVendor(productIds, bulkVendorSelect.value);
+                } else {
+                    alert('Please select a vendor first');
+                }
+            }
+            bulkVendorSelect.style.display = 'none';
+            break;
+
         case 'remove-category':
             if (confirm(`Remove category from ${productIds.length} selected products?`)) {
                 await bulkRemoveCategory(productIds);
@@ -514,6 +449,20 @@ async function applyBulkAction() {
             }
             break;
 
+        case 'remove-vendor':
+            bulkVendorSelect.style.display = 'inline-block';
+
+            const removeVendorConfirmed = confirm(`Remove ${productIds.length} selected products from a vendor?`);
+            if (removeVendorConfirmed) {
+                if (bulkVendorSelect.value) {
+                    await bulkRemoveVendor(productIds, bulkVendorSelect.value);
+                } else {
+                    alert('Please select a vendor first');
+                }
+            }
+            bulkVendorSelect.style.display = 'none';
+            break;
+
         case 'delete':
             if (confirm(`Are you sure you want to delete ${productIds.length} selected products?`)) {
                 await bulkDeleteProducts(productIds);
@@ -521,16 +470,16 @@ async function applyBulkAction() {
             break;
     }
 
-    // Reset selections
+
     document.getElementById('bulk-action').value = '';
     bulkCategorySelect.value = '';
     bulkWarehouseSelect.value = '';
     bulkShelfSelect.value = '';
     bulkManufacturerSelect.value = ''
+    bulkVendorSelect.value = ''
 
 }
 
-// Bulk delete products
 async function bulkDeleteProducts(productIds) {
     try {
         const response = await fetch(`${API_URL}bulk_delete/`, {
@@ -558,6 +507,82 @@ async function bulkDeleteProducts(productIds) {
 }
 
 //---------------------------
+async function bulkAssignCategory(productIds, categoryId) {
+    try {
+        const response = await fetch(`${API_URL}bulk_assign_category/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds,
+                category_id: categoryId
+            })
+        });
+
+        if (response.ok) {
+            alert('Category assigned successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error assigning category:', error);
+        alert('Error assigning category');
+    }
+}
+
+async function bulkRemoveCategory(productIds) {
+    try {
+        const response = await fetch(`${API_URL}bulk_remove_category/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                product_ids: productIds
+            })
+        });
+
+        if (response.ok) {
+            alert('Category removed successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + JSON.stringify(error));
+        }
+    } catch (error) {
+        console.error('Error removing category:', error);
+        alert('Error removing category');
+    }
+}
+
+async function loadCategoriesForBulk() {
+    try {
+        const response = await fetch(`${API_BASE_URL}categories/`);
+        categories = await response.json();
+        const bulkCategorySelect = document.getElementById('bulk-category');
+
+        // Clear existing options except the first one
+        while (bulkCategorySelect.options.length > 1) {
+            bulkCategorySelect.remove(1);
+        }
+
+        // Add categories to bulk select
+        categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.id;
+            option.textContent = category.name;
+            bulkCategorySelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        alert('Error loading categories');
+    }
+}
 
 async function loadWarehouseForBulk() {
     try {
@@ -789,12 +814,92 @@ async function bulkRemoveManufacturer(productIds) {
     }
 }
 
+async function loadVendorsForBulk() {
+    try {
+        const response = await fetch(`${API_BASE_URL}vendors/`);
+        const vendors = await response.json();
+        const bulkVendorSelect = document.getElementById('bulk-vendor');
+
+        while (bulkVendorSelect.options.length > 1) {
+            bulkVendorSelect.remove(1);
+        }
+
+        vendors.forEach(vendor => {
+            const option = document.createElement('option');
+            option.value = vendor.id;
+            option.textContent = vendor.name;
+            bulkVendorSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading vendors:', error);
+        alert('Error loading vendors');
+    }
+}
+
+async function bulkAssignVendor(productIds, vendorId) {
+
+    try {
+        const response = await fetch(`${API_URL}bulk_assign_vendor/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                product_ids: productIds,
+                vendor_id: vendorId
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            alert(result.success || 'Vendor added successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + error.error);
+        }
+    } catch (error) {
+        console.error('Error assigning vendor:', error);
+        alert('Error assigning vendor');
+    }
+}
+
+async function bulkRemoveVendor(productIds, vendorId) {
+    try {
+        const response = await fetch(`${API_URL}bulk_remove_vendor/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+                product_ids: productIds,
+                vendor_id: vendorId
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            alert(result.success || 'Vendor removed successfully');
+            loadProducts();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + error.error);
+        }
+    } catch (error) {
+        console.error('Error removing vendor:', error);
+        alert('Error removing vendor');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     loadProducts();
     loadCategoriesForBulk();
     loadWarehouseForBulk();
     loadShelvesForBulk();
     loadManufacturersForBulk();
+    loadVendorsForBulk();
 
     document.getElementById('bulk-action').addEventListener('change', function () {
         const bulkCategorySelect = document.getElementById('bulk-category');
@@ -808,6 +913,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const bulkManufacturerSelect = document.getElementById('bulk-manufacturer');
         bulkManufacturerSelect.style.display = (this.value === 'assign-manufacturer') ? 'inline-block' : 'none';
+
+        const bulkVendorSelect = document.getElementById('bulk-vendor');
+        bulkVendorSelect.style.display = (this.value === 'assign-vendor') ? 'inline-block' : 'none';
+
+        const bulkVendorRemoveSelect = document.getElementById('bulk-vendor');
+        bulkVendorRemoveSelect.style.display = (this.value === 'remove-vendor') ? 'inline-block' : 'none';
 
     });
 });

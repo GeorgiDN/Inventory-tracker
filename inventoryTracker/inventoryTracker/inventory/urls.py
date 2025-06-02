@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from inventoryTracker.inventory.views import ProductViewSet, products_view, warehouse_view, CategoryViewSet, \
     ManufacturerViewSet, WareHouseViewSet, ShelfViewSet, VendorViewSet, index, vendors_view, manufacturer_view, \
-    category_view, shelves_view
+    category_view, shelves_view, export_products_to_excel
 
 router = DefaultRouter()
 router.register(r'warehouses', WareHouseViewSet, basename='warehouse')
@@ -21,5 +21,6 @@ urlpatterns = [
     path('vendors/', vendors_view, name='vendors'),
     path('manufacturers/', manufacturer_view, name='manufacturers'),
     path('categories/', category_view, name='categories'),
+    path('products/export/', export_products_to_excel, name='export_products'),
 ]
 

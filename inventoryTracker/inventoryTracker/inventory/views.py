@@ -10,6 +10,10 @@ from inventoryTracker.inventory.serializers import ProductSerializer, CategorySe
     WareHouseSerializer, ShelfSerializer, VendorSerializer
 
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from openpyxl import Workbook
+from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font
 
 
 def index(request):
@@ -309,3 +313,70 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'success': f'Removed vendor from {len(products)} products'})
         except Vendor.DoesNotExist:
             return Response({'error': 'Vendor not found or not owned by user'}, status=404)
+
+
+def export_products_to_excel(request):
+    # Get products for the current user
+    products = Product.objects.filter(user=request.user)
+
+    # Create a workbook and add worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Products"
+
+    # Create header row with styling
+    headers = [
+        "Name", "Category", "SKU", "Barcode", "Manufacturer",
+        "Model", "Model 2", "Model 3", "Model 4", "Model 5",
+        "Quantity", "Warehouse", "Shelf", "Box", "Bag",
+        "Vendors", "Buy Price", "Sell Price", "Created At", "Updated At", "Additional Info"
+    ]
+
+    for col_num, header in enumerate(headers, 1):
+        col_letter = get_column_letter(col_num)
+        ws[f"{col_letter}1"] = header
+        ws[f"{col_letter}1"].font = Font(bold=True)
+
+    # Add data rows
+    for row_num, product in enumerate(products, 2):
+        ws[f"A{row_num}"] = product.name
+        ws[f"B{row_num}"] = product.category.name if product.category else ""
+        ws[f"C{row_num}"] = product.sku
+        ws[f"D{row_num}"] = product.barcode
+        ws[f"E{row_num}"] = product.manufacturer.name if product.manufacturer else ""
+        ws[f"F{row_num}"] = product.model
+        ws[f"G{row_num}"] = product.model_2
+        ws[f"H{row_num}"] = product.model_3
+        ws[f"I{row_num}"] = product.model_4
+        ws[f"J{row_num}"] = product.model_5
+        ws[f"K{row_num}"] = product.quantity
+        ws[f"L{row_num}"] = product.warehouse.name if product.warehouse else ""
+        ws[f"M{row_num}"] = product.shelf.name if product.shelf else ""
+        ws[f"N{row_num}"] = product.box
+        ws[f"O{row_num}"] = product.bag
+        ws[f"P{row_num}"] = ", ".join([v.name for v in product.vendor.all()])
+        ws[f"Q{row_num}"] = float(product.buy_price) if product.buy_price else 0
+        ws[f"R{row_num}"] = float(product.sell_price) if product.sell_price else 0
+        ws[f"S{row_num}"] = product.created_at.strftime("%Y-%m-%d %H:%M:%S")
+        ws[f"T{row_num}"] = product.updated_at.strftime("%Y-%m-%d %H:%M:%S")
+        ws[f"U{row_num}"] = product.additional_info
+
+    # Auto-adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = (max_length + 2) * 1.2
+        ws.column_dimensions[column].width = adjusted_width
+
+    # Prepare response
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=products_export.xlsx'
+    wb.save(response)
+
+    return response

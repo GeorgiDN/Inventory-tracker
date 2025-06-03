@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -78,3 +79,11 @@ class Product(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     additional_info = models.TextField(blank=True, null=True)
+
+    def clean(self):
+        if self.quantity and self.quantity < 0:
+            raise ValidationError({'quantity': 'Quantity cannot be negative'})
+        if self.buy_price and self.buy_price < 0:
+            raise ValidationError({'buy_price': 'Buy price cannot be negative'})
+        if self.sell_price and self.sell_price < 0:
+            raise ValidationError({'sell_price': 'Sell price cannot be negative'})

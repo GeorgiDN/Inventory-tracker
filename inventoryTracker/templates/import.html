@@ -1,0 +1,150 @@
+{% extends "index.html" %}
+{% load extras %}
+
+{% block content %}
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">
+                    <i class="fas fa-file-import me-2"></i> Import Products
+                </h2>
+            </div>
+
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.file.label_tag }}
+                            {{ form.file }}
+                            <div class="invalid-feedback">
+                                Please select a valid Excel file
+                            </div>
+                            <small class="form-text text-muted">
+                                Supported formats: .xlsx, .xls
+                            </small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check mt-4">
+                                {{ form.update_existing }}
+                                {{ form.update_existing.label_tag }}
+                            </div>
+                            <div class="form-check">
+                                {{ form.create_missing }}
+                                {{ form.create_missing.label_tag }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <div>
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-upload me-1"></i> Import Products
+                            </button>
+                            <a href="{% url 'products' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i> Cancel
+                            </a>
+                        </div>
+
+                        <a href="{% url 'export_products' %}" class="btn btn-success">
+                            <i class="fas fa-file-excel me-1"></i> Download Template
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if import_errors %}
+            <div class="card mt-4 border-danger">
+                <div class="card-header bg-danger text-white d-flex justify-content-between">
+                    <span>Import Errors ({{ import_errors|length }})</span>
+                    <button class="btn btn-sm btn-light" data-bs-toggle="collapse" data-bs-target="#errorCollapse">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="card-body collapse show" id="errorCollapse">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                            <tr>
+                                <th>Row</th>
+                                <th>Error</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for error in import_errors %}
+                                <tr>
+                                    <td>{{ error|split:":"|first }}</td>
+                                    <td>{{ error|split:":"|last }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i> Import Instructions
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Required Fields</h4>
+                        <ul>
+                            <li><strong>Name</strong> - Product name (text)</li>
+                            <li><strong>SKU</strong> - Unique stock keeping unit (text)</li>
+                            <li><strong>Quantity</strong> - Numeric value (integer)</li>
+                        </ul>
+
+                        <h4>Recommended Fields</h4>
+                        <ul>
+                            <li><strong>Category</strong> - Existing category name</li>
+                            <li><strong>Manufacturer</strong> - Existing manufacturer name</li>
+                            <li><strong>Buy/Sell Price</strong> - Decimal numbers</li>
+                        </ul>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h4>Formatting Guidelines</h4>
+                        <ul>
+                            <li>First row must contain headers exactly as shown in template</li>
+                            <li>Dates should be in YYYY-MM-DD format</li>
+                            <li>Multiple vendors should be comma-separated</li>
+                            <li>Leave cells blank for optional fields</li>
+                        </ul>
+
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> When updating existing products, SKU values must match exactly.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+            window.addEventListener('load', function () {
+                var forms = document.getElementsByClassName('needs-validation');
+                Array.prototype.filter.call(forms, function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+    </script>
+{% endblock %}

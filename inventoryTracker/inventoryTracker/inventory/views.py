@@ -1,10 +1,14 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from openpyxl.reader.excel import load_workbook
 from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db import transaction
 
 from inventoryTracker import settings
+from inventoryTracker.inventory.forms import ProductImportForm
 from inventoryTracker.inventory.models import Product, Category, Manufacturer, Warehouse, Shelf, Vendor
 from inventoryTracker.inventory.serializers import ProductSerializer, CategorySerializer, ManufacturerSerializer, \
     WareHouseSerializer, ShelfSerializer, VendorSerializer
@@ -14,6 +18,9 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
+
+from decimal import Decimal
+from datetime import datetime
 
 
 def index(request):
@@ -380,3 +387,225 @@ def export_products_to_excel(request):
     wb.save(response)
 
     return response
+
+
+def import_products(request):
+    if request.method == 'POST':
+        form = ProductImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    file = request.FILES['file']
+                    wb = load_workbook(filename=file, data_only=True)
+                    ws = wb.active
+
+                    # Expected headers mapping
+                    expected_headers = {
+                        'Name': 'name',
+                        'Category': 'category',
+                        'SKU': 'sku',
+                        'Barcode': 'barcode',
+                        'Manufacturer': 'manufacturer',
+                        'Model': 'model',
+                        'Model 2': 'model_2',
+                        'Model 3': 'model_3',
+                        'Model 4': 'model_4',
+                        'Model 5': 'model_5',
+                        'Quantity': 'quantity',
+                        'Warehouse': 'warehouse',
+                        'Shelf': 'shelf',
+                        'Box': 'box',
+                        'Bag': 'bag',
+                        'Vendors': 'vendor',
+                        'Buy Price': 'buy_price',
+                        'Sell Price': 'sell_price',
+                        'Additional Info': 'additional_info'
+                    }
+
+                    # Validate headers
+                    headers = [cell.value for cell in ws[1]]
+                    missing_headers = set(expected_headers.keys()) - set(headers)
+                    if missing_headers:
+                        raise ValueError(f"Missing required columns: {', '.join(missing_headers)}")
+
+                    # Create column mapping
+                    column_map = {header: idx + 1 for idx, header in enumerate(headers)}
+
+                    success_count = 0
+                    error_count = 0
+                    errors = []
+
+                    for row in ws.iter_rows(min_row=2):  # Skip header row
+                        row_num = row[0].row
+                        try:
+                            row_data = {'user': request.user}
+
+                            for header, field in expected_headers.items():
+                                if header in ['Vendors', 'Category', 'Manufacturer', 'Warehouse', 'Shelf']:
+                                    continue  # Handle these separately
+
+                                cell_value = ws.cell(row=row_num, column=column_map[header]).value
+                                if cell_value is None:
+                                    continue
+
+                                if header in ['Buy Price', 'Sell Price']:
+                                    row_data[field] = Decimal(str(cell_value))
+                                elif header == 'Quantity':
+                                    row_data[field] = int(cell_value)
+                                else:
+                                    row_data[field] = str(cell_value).strip()
+
+                            if 'Category' in column_map:
+                                category_name = ws.cell(row=row_num, column=column_map['Category']).value
+                                if category_name:
+                                    if form.cleaned_data['create_missing']:
+                                        category, _ = Category.objects.get_or_create(
+                                            name=str(category_name).strip(),
+                                            user=request.user
+                                        )
+                                        row_data['category'] = category
+                                    else:
+                                        try:
+                                            row_data['category'] = Category.objects.get(
+                                                name=str(category_name).strip(),
+                                                user=request.user
+                                            )
+                                        except Category.DoesNotExist:
+                                            raise ValueError(f"Category '{category_name}' does not exist")
+
+                            if 'Manufacturer' in column_map:
+                                manufacturer_name = ws.cell(row=row_num, column=column_map['Manufacturer']).value
+                                if manufacturer_name:
+                                    if form.cleaned_data['create_missing']:
+                                        manufacturer, _ = Manufacturer.objects.get_or_create(
+                                            name=str(manufacturer_name).strip(),
+                                            user=request.user
+                                        )
+                                        row_data['manufacturer'] = manufacturer
+                                    else:
+                                        try:
+                                            row_data['manufacturer'] = Manufacturer.objects.get(
+                                                name=str(manufacturer_name).strip(),
+                                                user=request.user
+                                            )
+                                        except Manufacturer.DoesNotExist:
+                                            raise ValueError(f"Manufacturer '{manufacturer_name}' does not exist")
+
+                            if 'Warehouse' in column_map:
+                                warehouse_name = ws.cell(row=row_num, column=column_map['Warehouse']).value
+                                if warehouse_name:
+                                    if form.cleaned_data['create_missing']:
+                                        warehouse, _ = Warehouse.objects.get_or_create(
+                                            name=str(warehouse_name).strip(),
+                                            user=request.user
+                                        )
+                                        row_data['warehouse'] = warehouse
+                                    else:
+                                        try:
+                                            row_data['warehouse'] = Warehouse.objects.get(
+                                                name=str(warehouse_name).strip(),
+                                                user=request.user
+                                            )
+                                        except Warehouse.DoesNotExist:
+                                            raise ValueError(f"Warehouse '{warehouse_name}' does not exist")
+
+                            if 'Shelf' in column_map:
+                                shelf_name = ws.cell(row=row_num, column=column_map['Shelf']).value
+                                if shelf_name:
+                                    warehouse = row_data.get('warehouse')
+                                    if not warehouse:
+                                        raise ValueError("Shelf requires a warehouse to be specified")
+
+                                    if form.cleaned_data['create_missing']:
+                                        shelf, _ = Shelf.objects.get_or_create(
+                                            name=str(shelf_name).strip(),
+                                            warehouse=warehouse,
+                                            user=request.user
+                                        )
+                                        row_data['shelf'] = shelf
+                                    else:
+                                        try:
+                                            row_data['shelf'] = Shelf.objects.get(
+                                                name=str(shelf_name).strip(),
+                                                warehouse=warehouse,
+                                                user=request.user
+                                            )
+                                        except Shelf.DoesNotExist:
+                                            raise ValueError(
+                                                f"Shelf '{shelf_name}' does not exist in warehouse '{warehouse.name}'")
+
+                            vendor_names = []
+                            if 'Vendors' in column_map:
+                                vendor_cell = ws.cell(row=row_num, column=column_map['Vendors']).value
+                                if vendor_cell:
+                                    vendor_names = [
+                                        name.strip()
+                                        for name in str(vendor_cell).split(',')
+                                        if name.strip()
+                                    ]
+
+                            # Check if product exists (if update_existing)
+                            product = None
+                            if form.cleaned_data['update_existing'] and 'sku' in row_data:
+                                product = Product.objects.filter(
+                                    sku=row_data['sku'],
+                                    user=request.user
+                                ).first()
+
+                            if product:
+                                # Update existing product
+                                for field, value in row_data.items():
+                                    if field != 'user' and field != 'sku':
+                                        setattr(product, field, value)
+                                product.full_clean()
+                                product.save()
+                            else:
+                                # Create new product
+                                product = Product(**row_data)
+                                product.full_clean()
+                                product.save()
+
+                            if vendor_names:
+                                vendors = []
+                                for name in vendor_names:
+                                    if form.cleaned_data['create_missing']:
+                                        vendor, _ = Vendor.objects.get_or_create(
+                                            name=name,
+                                            user=request.user
+                                        )
+                                    else:
+                                        try:
+                                            vendor = Vendor.objects.get(
+                                                name=name,
+                                                user=request.user
+                                            )
+                                        except Vendor.DoesNotExist:
+                                            raise ValueError(f"Vendor '{name}' does not exist")
+                                    vendors.append(vendor)
+                                product.vendor.set(vendors)
+
+                            success_count += 1
+
+                        except Exception as e:
+                            error_count += 1
+                            errors.append(f"Row {row_num}: {str(e)}")
+                            continue
+
+                    messages.success(request, f"Successfully processed {success_count} products")
+                    if error_count > 0:
+                        messages.warning(request, f"Failed to process {error_count} rows")
+                        request.session['import_errors'] = errors[:50]  # Limit to 50 errors
+
+                    return redirect('products')
+
+            except Exception as e:
+                messages.error(request, f"Import failed: {str(e)}")
+    else:
+        form = ProductImportForm()
+
+    import_errors = request.session.pop('import_errors', None)
+
+    return render(request, 'import.html', {
+        'form': form,
+        'import_errors': import_errors
+    })
